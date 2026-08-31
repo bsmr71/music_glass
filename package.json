@@ -3,6 +3,7 @@
     "name": "music-glass",
     "version": "1.0.0",
     "description": "Music Glass — Liquid Glass Web & Desktop Music Player",
+    "author": "bsmr71 (https://github.com/bsmr71)",
     "main": "electron/main.cjs",
     "private": true,
     "type": "module",
@@ -20,7 +21,7 @@
                 "nsis",
                 "portable"
             ],
-            "icon": "public/favicon.ico"
+            "icon": "public/icon.png"
         },
         "files": [
             "electron/**/*",
