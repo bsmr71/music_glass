@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80" width="140" style="border-radius: 28px; box-shadow: 0 12px 36px rgba(0, 102, 255, 0.4);" alt="Convx Logo">
+  <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80" width="140" style="border-radius: 28px; box-shadow: 0 12px 36px rgba(0, 102, 255, 0.4);" alt="Music Glass Logo">
 </p>
 
-<h1 align="center">CONVX — Liquid Glass Music Player</h1>
+<h1 align="center">MUSIC GLASS — Liquid Glass Music Player</h1>
 
 <p align="center">
   <strong>Next-Gen Web Music Player with Apple/iOS-Inspired Liquid Glass UI, Web Audio Equalizer, 60FPS Canvas Visualizer, Live Synced Karaoke Lyrics, and Zero-Lag Dual Engine Streaming.</strong>
@@ -21,9 +21,9 @@
 
 ## 🌟 Overview
 
-**Convx Web** is a music streaming web client engineered with a custom **Liquid Glass (Glassmorphism)** design system and powered by the **Web Audio API**. It delivers seamless zero-lag streaming from YouTube Music alongside synchronized lyrics, a 10-band hardware-grade equalizer, and synchronized listening rooms.
+**Music Glass** (formerly Convx Web) is a modern music streaming web client engineered with a custom **Liquid Glass (Glassmorphism)** design system and powered by the **Web Audio API**. It delivers seamless zero-lag streaming from YouTube Music alongside synchronized lyrics, a 10-band hardware-grade equalizer, and synchronized listening rooms.
 
-> 💡 **Inspiration**: Project ini terinspirasi dari aplikasi mobile [Convx](https://github.com/cosmictaserdev-creator/Convx) karya **[cosmictaserdev-creator](https://github.com/cosmictaserdev-creator)** dan dibuat sebagai adaptasi **versi web** (*Full-featured Web Version*) dengan teknologi modern berbasis browser.
+> 💡 **Inspiration & Attribution**: Project ini terinspirasi dari aplikasi mobile [Convx](https://github.com/cosmictaserdev-creator/Convx) karya **[cosmictaserdev-creator](https://github.com/cosmictaserdev-creator)** dan dibuat sebagai adaptasi **versi web** (*Full-featured Web Client*) dengan teknologi modern berbasis browser.
 
 ---
 
@@ -190,6 +190,14 @@ music_glass/
 - **Karaoke Lyrics API**: [LRCLIB](https://lrclib.net) untuk penyediaan lirik lagu yang tersinkronisasi.
 - **Icons**: [Lucide Icons](https://lucide.dev).
 - **Color Palette Extraction**: [ColorThief](https://lokeshdhakar.com/projects/color-thief/).
+
+---
+
+## ⚠️ Disclaimer & Fair Use
+
+- **Educational & Personal Purpose**: This project is developed exclusively for educational, personal research, and non-commercial portfolio purposes.
+- **No Media Hosting**: All music playback and metadata are streamed dynamically via public third-party services (YouTube Music and LRCLIB). No audio or media files are hosted on or distributed from this repository.
+- **Trademarks & Copyrights**: All song rights, album artwork, and trademarks belong to their respective copyright holders and artists. This project is not affiliated with or endorsed by YouTube or Google LLC.
 
 ---
 
