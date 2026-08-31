@@ -129,6 +129,25 @@
    http://127.0.0.1:8000
    ```
 
+### 🖥️ Run as Desktop Application (Electron)
+
+1. **Install Node dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Launch Desktop App:**
+   ```bash
+   npm run desktop
+   ```
+   *(The desktop app will automatically connect to or launch the local PHP server in the background!)*
+
+3. **Build Windows Standalone `.exe` Installer:**
+   ```bash
+   npm run desktop:dist
+   ```
+   *(Builds `.exe` installer and portable package into the `dist/` directory)*
+
 ---
 
 ## 📁 Project Architecture

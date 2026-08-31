@@ -223,6 +223,27 @@ class ConvxApp {
         this.restorePlaybackState();
         this.startVisualizer();
         this.checkUrlRoute();
+        this.setupElectronBridge();
+    }
+
+    /**
+     * Electron Desktop Bridge (Global Media Keys & Tray Sync)
+     */
+    setupElectronBridge() {
+        if (window.electronAPI) {
+            document.body.classList.add('is-electron');
+            window.electronAPI.onMediaControl((action) => {
+                if (action === 'play-pause') {
+                    this.togglePlay();
+                } else if (action === 'next') {
+                    this.nextTrack();
+                } else if (action === 'prev') {
+                    this.prevTrack();
+                } else if (action === 'stop') {
+                    if (this.isPlaying) this.togglePlay();
+                }
+            });
+        }
     }
 
     /**
@@ -1076,6 +1097,11 @@ class ConvxApp {
         if (this.dom.fsVinyl) {
             this.dom.fsVinyl.style.animationPlayState = this.isPlaying ? 'running' : 'paused';
         }
+
+        // Sync with Electron Desktop Process
+        if (window.electronAPI) {
+            window.electronAPI.sendPlayState(this.isPlaying);
+        }
     }
 
     updateTrackMetaUI(track) {
@@ -1105,6 +1131,17 @@ class ConvxApp {
             navigator.mediaSession.setActionHandler('pause', () => this.togglePlay());
             navigator.mediaSession.setActionHandler('previoustrack', () => this.prevTrack());
             navigator.mediaSession.setActionHandler('nexttrack', () => this.nextTrack());
+        }
+
+        // Sync with Electron Desktop Process (Window title & system tray)
+        if (window.electronAPI) {
+            window.electronAPI.sendTrackUpdate({
+                title: track.title,
+                artist: track.artist,
+                album: track.album,
+                thumbnail: track.thumbnail,
+                isPlaying: this.isPlaying
+            });
         }
     }
 

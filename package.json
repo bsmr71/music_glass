@@ -1,15 +1,45 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
+    "name": "music-glass",
+    "version": "1.0.0",
+    "description": "Music Glass — Liquid Glass Web & Desktop Music Player",
+    "main": "electron/main.cjs",
     "private": true,
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "desktop": "electron electron/main.cjs",
+        "desktop:dist": "electron-builder --win"
+    },
+    "build": {
+        "appId": "com.musicglass.app",
+        "productName": "Music Glass",
+        "win": {
+            "target": [
+                "nsis",
+                "portable"
+            ],
+            "icon": "public/favicon.ico"
+        },
+        "files": [
+            "electron/**/*",
+            "public/**/*",
+            "resources/**/*",
+            "routes/**/*",
+            "app/**/*",
+            "config/**/*",
+            "database/**/*",
+            "bootstrap/**/*",
+            "artisan"
+        ]
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
         "axios": "^1.11.0",
         "concurrently": "^9.0.1",
+        "electron": "^44.0.0",
+        "electron-builder": "^26.15.3",
         "laravel-vite-plugin": "^2.0.0",
         "tailwindcss": "^4.0.0",
         "vite": "^7.0.7"

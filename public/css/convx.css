@@ -328,6 +328,22 @@ body.convx-app {
     flex-shrink: 0;
 }
 
+/* Electron Desktop Window Drag & Controls */
+body.is-electron .glass-topbar {
+    -webkit-app-region: drag;
+    padding-right: 140px;
+}
+
+body.is-electron button,
+body.is-electron input,
+body.is-electron a,
+body.is-electron .top-search-bar,
+body.is-electron .glass-pill-badge,
+body.is-electron .glass-icon-pill,
+body.is-electron .glass-room-pill {
+    -webkit-app-region: no-drag;
+}
+
 .topbar-left {
     display: flex;
     align-items: center;
