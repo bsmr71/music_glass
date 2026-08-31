@@ -1007,9 +1007,6 @@
         </div>
     </div>
 
-    <!-- YouTube Iframe API Script -->
-    <script src="https://www.youtube.com/iframe_api"></script>
-
     <!-- Convx Core JavaScript -->
     <script src="/js/convx.js?v={{ time() }}"></script>
 </body>

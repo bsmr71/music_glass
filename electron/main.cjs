@@ -17,9 +17,8 @@ const PORT = 8000;
 const userDataPath = path.join(app.getPath('temp'), 'music_glass_profile');
 app.setPath('userData', userDataPath);
 
-// Enable instant background autoplay without user gesture requirements & in-process audio service
+// Enable instant background autoplay without user gesture requirements
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
-app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess');
 app.commandLine.appendSwitch('disable-background-timer-throttling');
 app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
