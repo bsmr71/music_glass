@@ -107,8 +107,7 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.cjs'),
             nodeIntegration: false,
             contextIsolation: true,
-            webSecurity: false, // Allows cross-origin audio streaming & YouTube embeds
-            allowRunningInsecureContent: true,
+            webSecurity: true, // Enables standard Windows Media Foundation audio hardware pipeline
             backgroundThrottling: false
         }
     });
