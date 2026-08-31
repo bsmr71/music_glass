@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage, shell, session } = require('electron');
 const path = require('path');
 const http = require('http');
 const { spawn } = require('child_process');
@@ -273,6 +273,20 @@ ipcMain.on('play-state', (event, isPlaying) => {
 
 // App Lifecycle
 app.whenReady().then(() => {
+    // Strip X-Frame-Options and CSP headers for seamless YouTube embed playback in Electron
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+        const responseHeaders = { ...details.responseHeaders };
+        delete responseHeaders['x-frame-options'];
+        delete responseHeaders['X-Frame-Options'];
+        delete responseHeaders['content-security-policy'];
+        delete responseHeaders['Content-Security-Policy'];
+        delete responseHeaders['cross-origin-embedder-policy'];
+        delete responseHeaders['Cross-Origin-Embedder-Policy'];
+        delete responseHeaders['cross-origin-opener-policy'];
+        delete responseHeaders['Cross-Origin-Opener-Policy'];
+        callback({ responseHeaders });
+    });
+
     startPhpServerIfNeeded(() => {
         createWindow();
     });

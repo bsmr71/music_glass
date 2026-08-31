@@ -743,8 +743,8 @@ class ConvxApp {
             if (this.ytPlayer) return;
             try {
                 this.ytPlayer = new YT.Player('yt-player-container', {
-                    height: '1',
-                    width: '1',
+                    height: '240',
+                    width: '320',
                     playerVars: {
                         autoplay: 1,
                         controls: 0,
@@ -903,22 +903,27 @@ class ConvxApp {
         // 1. INSTANT PLAYBACK VIA YOUTUBE ENGINE (ZERO DELAY!)
         this.playViaYouTubeEngine(track);
 
-        // 2. Concurrently check direct audio stream in background without delaying audio start
+        // 2. Concurrently fetch direct audio stream and failover automatically
         fetch(`/api/music/stream/${track.id}`)
             .then(res => res.json())
             .then(streamData => {
                 if (streamData && streamData.success && streamData.primaryUrl && this.currentTrack?.id === track.id) {
-                    const currentTime = this.ytPlayer?.getCurrentTime ? (this.ytPlayer.getCurrentTime() || 0) : 0;
+                    const currentTime = (this.ytPlayer && typeof this.ytPlayer.getCurrentTime === 'function') 
+                        ? (this.ytPlayer.getCurrentTime() || 0) : 0;
                     this.audio.src = streamData.primaryUrl;
                     this.audio.currentTime = currentTime;
-                    this.audio.play().then(() => {
-                        this.useYouTubeEngine = false;
-                        if (this.ytPlayer && this.ytPlayer.pauseVideo) {
-                            this.ytPlayer.pauseVideo();
-                        }
-                    }).catch(() => {
-                        // YouTube engine continues seamlessly
-                    });
+
+                    // If YouTube has not started playing yet, engage HTML5 direct audio!
+                    if (!this.isPlaying || (this.ytPlayer && typeof this.ytPlayer.getPlayerState === 'function' && this.ytPlayer.getPlayerState() !== 1)) {
+                        this.audio.play().then(() => {
+                            this.useYouTubeEngine = false;
+                            this.isPlaying = true;
+                            this.updatePlayStateUI();
+                            if (this.ytPlayer && typeof this.ytPlayer.pauseVideo === 'function') {
+                                this.ytPlayer.pauseVideo();
+                            }
+                        }).catch(() => {});
+                    }
                 }
             })
             .catch(() => {});
