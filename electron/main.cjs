@@ -13,9 +13,12 @@ let currentTrackInfo = { title: 'No track playing', artist: 'Music Glass', isPla
 const APP_URL = process.env.APP_URL || 'http://127.0.0.1:8000';
 const PORT = 8000;
 
-// Enable instant background autoplay without user gesture requirements
+// Enable instant background autoplay without user gesture requirements & prevent iframe suspension
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling');
+app.commandLine.appendSwitch('disable-background-timer-throttling');
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
 
 // Enforce single instance
 const gotTheLock = app.requestSingleInstanceLock();
@@ -97,7 +100,8 @@ function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             webSecurity: false, // Allows cross-origin audio streaming & YouTube embeds
-            allowRunningInsecureContent: true
+            allowRunningInsecureContent: true,
+            backgroundThrottling: false
         }
     });
 

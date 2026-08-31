@@ -2848,13 +2848,15 @@ input:checked + .slider:before { transform: translateX(20px); }
 /* ==================== HIDDEN AUDIO & YOUTUBE ENGINE ==================== */
 .yt-hidden-player,
 #yt-player-container,
-iframe#yt-player-container {
+#yt-player-container iframe,
+#yt-stream-iframe {
     position: fixed !important;
-    top: -9999px !important;
-    left: -9999px !important;
-    width: 320px !important;
-    height: 240px !important;
+    bottom: 10px !important;
+    right: 10px !important;
+    width: 200px !important;
+    height: 150px !important;
     opacity: 0.001 !important;
     pointer-events: none !important;
-    z-index: -9999 !important;
+    z-index: 1 !important;
+    border: none !important;
 }
