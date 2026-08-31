@@ -158,6 +158,29 @@
                         <i data-lucide="list-music"></i>
                         <span class="queue-counter" id="queue-counter-badge">0</span>
                     </button>
+
+                    <!-- GitHub Profile & Account Pill -->
+                    <a href="https://github.com/bsmr71/music_glass" target="_blank" class="github-profile-pill" id="btn-github-profile" title="bsmr71 on GitHub">
+                        <img src="https://github.com/bsmr71.png" alt="bsmr71" class="profile-avatar-img" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'">
+                        <div class="profile-info-text">
+                            <span class="profile-name">bsmr71</span>
+                            <span class="profile-sub">GitHub</span>
+                        </div>
+                        <i data-lucide="github" class="profile-github-icon"></i>
+                    </a>
+
+                    <!-- Custom Liquid Glass Window Controls (Electron Desktop) -->
+                    <div class="electron-window-controls" id="electron-controls">
+                        <button class="win-control-btn win-min" id="win-btn-min" title="Minimize">
+                            <svg width="10" height="2" viewBox="0 0 10 2"><line x1="0" y1="1" x2="10" y2="1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        </button>
+                        <button class="win-control-btn win-max" id="win-btn-max" title="Maximize">
+                            <svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+                        </button>
+                        <button class="win-control-btn win-close" id="win-btn-close" title="Close">
+                            <svg width="10" height="10" viewBox="0 0 10 10"><line x1="1.5" y1="1.5" x2="8.5" y2="8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="8.5" y1="1.5" x2="1.5" y2="8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        </button>
+                    </div>
                 </div>
             </header>
 

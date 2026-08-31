@@ -331,7 +331,7 @@ body.convx-app {
 /* Electron Desktop Window Drag & Controls */
 body.is-electron .glass-topbar {
     -webkit-app-region: drag;
-    padding-right: 140px;
+    padding-right: 20px;
 }
 
 body.is-electron button,
@@ -340,7 +340,9 @@ body.is-electron a,
 body.is-electron .top-search-bar,
 body.is-electron .glass-pill-badge,
 body.is-electron .glass-icon-pill,
-body.is-electron .glass-room-pill {
+body.is-electron .glass-room-pill,
+body.is-electron .github-profile-pill,
+body.is-electron .electron-window-controls {
     -webkit-app-region: no-drag;
 }
 
@@ -514,6 +516,114 @@ body.is-electron .glass-room-pill {
 @keyframes roomPulse {
     from { box-shadow: 0 0 0 rgba(16, 185, 129, 0.2); }
     to { box-shadow: 0 0 12px rgba(16, 185, 129, 0.5); }
+}
+
+/* ==================== GITHUB / USER PROFILE PILL ==================== */
+.github-profile-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-glass-bright);
+    padding: 4px 14px 4px 6px;
+    border-radius: 24px;
+    text-decoration: none;
+    color: var(--text-main);
+    transition: all 0.25s var(--spring-physics);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+}
+
+.github-profile-pill:hover {
+    background: rgba(168, 85, 247, 0.18);
+    border-color: rgba(168, 85, 247, 0.55);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.35);
+}
+
+.profile-avatar-img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid rgba(168, 85, 247, 0.6);
+    background: #181824;
+}
+
+.profile-info-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.profile-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.3px;
+}
+
+.profile-sub {
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: #a78bfa;
+}
+
+.profile-github-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+}
+
+.github-profile-pill:hover .profile-github-icon {
+    color: #ffffff;
+}
+
+/* ==================== CUSTOM LIQUID GLASS WINDOW CONTROLS (ELECTRON) ==================== */
+.electron-window-controls {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    margin-left: 6px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    -webkit-app-region: no-drag;
+}
+
+body.is-electron .electron-window-controls {
+    display: flex;
+}
+
+.win-control-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-glass);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s var(--spring-physics);
+    -webkit-app-region: no-drag;
+}
+
+.win-control-btn:hover {
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.35);
+    transform: scale(1.08);
+}
+
+.win-control-btn.win-close:hover {
+    background: rgba(239, 68, 68, 0.9);
+    border-color: #ef4444;
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.7);
 }
 
 /* ==================== CONTENT SCROLL AREA ==================== */

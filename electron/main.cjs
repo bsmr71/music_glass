@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage, shell } = require('electron');
 const path = require('path');
 const http = require('http');
 const { spawn } = require('child_process');
@@ -83,12 +83,7 @@ function createWindow() {
         backgroundColor: '#090a12',
         title: 'Music Glass',
         icon: path.join(__dirname, '../public/favicon.ico'),
-        titleBarStyle: 'hidden',
-        titleBarOverlay: {
-            color: '#0a0a14',
-            symbolColor: '#a78bfa',
-            height: 38
-        },
+        frame: false, // Pure Custom Liquid Glass Window!
         webPreferences: {
             preload: path.join(__dirname, 'preload.cjs'),
             nodeIntegration: false,
@@ -98,6 +93,12 @@ function createWindow() {
     });
 
     mainWindow.loadURL(APP_URL);
+
+    // Open external web links in user's default browser
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        shell.openExternal(url);
+        return { action: 'deny' };
+    });
 
     mainWindow.webContents.on('did-fail-load', () => {
         console.warn(`[Music Glass] Failed to load ${APP_URL}. Retrying in 2 seconds...`);
@@ -232,6 +233,12 @@ ipcMain.on('window-close', () => {
 
 ipcMain.handle('window-is-maximized', () => {
     return mainWindow ? mainWindow.isMaximized() : false;
+});
+
+ipcMain.on('open-external', (event, url) => {
+    if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+        shell.openExternal(url);
+    }
 });
 
 // IPC Handler for live track sync to OS tray / title

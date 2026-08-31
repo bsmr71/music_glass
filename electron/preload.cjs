@@ -10,6 +10,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     close: () => ipcRenderer.send('window-close'),
     isMaximized: () => ipcRenderer.invoke('window-is-maximized'),
 
+    // Open external links in default browser
+    openExternal: (url) => ipcRenderer.send('open-external', url),
+
     // Media state sync to OS / Tray / SMTC
     sendTrackUpdate: (trackData) => ipcRenderer.send('track-update', trackData),
     sendPlayState: (isPlaying) => ipcRenderer.send('play-state', isPlaying),

@@ -227,11 +227,37 @@ class ConvxApp {
     }
 
     /**
-     * Electron Desktop Bridge (Global Media Keys & Tray Sync)
+     * Electron Desktop Bridge (Global Media Keys, Custom Controls & Tray Sync)
      */
     setupElectronBridge() {
         if (window.electronAPI) {
             document.body.classList.add('is-electron');
+
+            // Window Control Buttons
+            const btnMin = document.getElementById('win-btn-min');
+            const btnMax = document.getElementById('win-btn-max');
+            const btnClose = document.getElementById('win-btn-close');
+
+            if (btnMin) {
+                btnMin.addEventListener('click', () => window.electronAPI.minimize());
+            }
+            if (btnMax) {
+                btnMax.addEventListener('click', () => window.electronAPI.maximize());
+            }
+            if (btnClose) {
+                btnClose.addEventListener('click', () => window.electronAPI.close());
+            }
+
+            // GitHub External Link Handler
+            const githubPill = document.getElementById('btn-github-profile');
+            if (githubPill) {
+                githubPill.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.electronAPI.openExternal(githubPill.href);
+                });
+            }
+
+            // Global Media Keys / System Tray Controls
             window.electronAPI.onMediaControl((action) => {
                 if (action === 'play-pause') {
                     this.togglePlay();
