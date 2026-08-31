@@ -302,30 +302,36 @@ app.whenReady().then(() => {
         callback({ requestHeaders });
     });
 
-    // 2. Strip X-Frame-Options, CSP, and grant matching origin CORS with credentials
+    // 2. Strip X-Frame-Options, CSP, and grant matching origin CORS with credentials for all songs
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
         const responseHeaders = { ...details.responseHeaders };
+        const url = details.url;
 
-        // Cleanly delete all variations of restrictive headers
+        // Cleanly delete all variations of restrictive framing & CSP headers
         for (const key of Object.keys(responseHeaders)) {
             const lower = key.toLowerCase();
             if (
                 lower === 'x-frame-options' ||
                 lower === 'content-security-policy' ||
                 lower === 'cross-origin-embedder-policy' ||
-                lower === 'cross-origin-opener-policy' ||
-                lower === 'access-control-allow-origin' ||
-                lower === 'access-control-allow-credentials'
+                lower === 'cross-origin-opener-policy'
             ) {
                 delete responseHeaders[key];
             }
         }
 
-        // Match the request Origin dynamically so credentials: 'include' requests are 100% accepted
-        const reqOrigin = (details.requestHeaders && (details.requestHeaders['Origin'] || details.requestHeaders['origin'])) || 'https://www.youtube.com';
-        responseHeaders['Access-Control-Allow-Origin'] = [reqOrigin];
-        responseHeaders['Access-Control-Allow-Credentials'] = ['true'];
-        responseHeaders['Access-Control-Allow-Methods'] = ['GET, POST, OPTIONS, HEAD'];
+        // Apply clean credentials CORS specifically for YouTube & Google Video media chunks
+        if (url.includes('googlevideo.com') || url.includes('youtube.com') || url.includes('youtube-nocookie.com')) {
+            for (const key of Object.keys(responseHeaders)) {
+                const lower = key.toLowerCase();
+                if (lower === 'access-control-allow-origin' || lower === 'access-control-allow-credentials') {
+                    delete responseHeaders[key];
+                }
+            }
+            responseHeaders['Access-Control-Allow-Origin'] = ['https://www.youtube.com'];
+            responseHeaders['Access-Control-Allow-Credentials'] = ['true'];
+            responseHeaders['Access-Control-Allow-Methods'] = ['GET, POST, OPTIONS, HEAD'];
+        }
 
         callback({ responseHeaders });
     });

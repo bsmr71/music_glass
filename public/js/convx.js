@@ -929,30 +929,32 @@ class ConvxApp {
         this.currentTrackTime = 0;
         this.currentTrackDuration = track.duration ? this.parseDurationSeconds(track.duration) : 180;
 
+        const embedUrl = `https://www.youtube.com/embed/${track.id}?autoplay=1&mute=0&volume=100&enablejsapi=1&playsinline=1`;
+        const iframe = document.getElementById('yt-stream-iframe');
         const container = document.getElementById('yt-player-container');
-        if (container) {
+
+        if (iframe) {
+            iframe.src = embedUrl;
+        } else if (container) {
             container.innerHTML = `
                 <iframe 
                     id="yt-stream-iframe"
-                    src="https://www.youtube.com/embed/${track.id}?autoplay=1&mute=0&volume=100&enablejsapi=1&playsinline=1"
+                    src="${embedUrl}"
                     allow="autoplay *; encrypted-media *; picture-in-picture *;"
                     style="width: 240px; height: 180px; border: 0;"
                 ></iframe>
             `;
         }
 
-        // Send unMute and volume commands
-        setTimeout(() => {
-            this.sendYouTubeCommand('unMute');
-            this.sendYouTubeCommand('setVolume', Math.round((this.audio ? this.audio.volume : 0.8) * 100));
-            this.sendYouTubeCommand('playVideo');
-        }, 300);
-
-        setTimeout(() => {
-            this.sendYouTubeCommand('unMute');
-            this.sendYouTubeCommand('setVolume', Math.round((this.audio ? this.audio.volume : 0.8) * 100));
-            this.sendYouTubeCommand('playVideo');
-        }, 800);
+        // Send unMute, setVolume, and play commands in staggered sequence
+        [200, 600, 1200].forEach(delay => {
+            setTimeout(() => {
+                this.sendYouTubeCommand('unMute');
+                this.sendYouTubeCommand('setVolume', Math.round((this.audio ? this.audio.volume : 0.8) * 100));
+                this.sendYouTubeCommand('loadVideoById', track.id);
+                this.sendYouTubeCommand('playVideo');
+            }, delay);
+        });
 
         this.isPlaying = true;
         this.updatePlayStateUI();
