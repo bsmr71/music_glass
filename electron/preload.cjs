@@ -29,5 +29,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Listen to global media shortcuts / tray clicks from main process
     onMediaControl: (callback) => {
         ipcRenderer.on('media-control', (event, action) => callback(action));
-    }
+    },
+
+    // Force direct hardware unmute across all iframe media elements
+    forceUnmute: (volume = 1.0) => ipcRenderer.send('force-unmute-frames', volume)
 });

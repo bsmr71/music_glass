@@ -127,6 +127,16 @@ function createWindow() {
         return { action: 'deny' };
     });
 
+    // Auto-unmute when any subframe media begins playing
+    mainWindow.webContents.on('media-started-playing', () => {
+        unmuteAllMediaFrames(1.0);
+    });
+
+    mainWindow.webContents.on('did-frame-finish-load', () => {
+        setTimeout(() => unmuteAllMediaFrames(1.0), 300);
+        setTimeout(() => unmuteAllMediaFrames(1.0), 1000);
+    });
+
     mainWindow.webContents.on('did-fail-load', () => {
         console.warn(`[Music Glass] Failed to load ${APP_URL}. Retrying in 2 seconds...`);
         setTimeout(() => {
@@ -269,6 +279,34 @@ ipcMain.on('open-external', (event, url) => {
     if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
         shell.openExternal(url);
     }
+});
+
+// Force direct hardware unmute across all frames (including cross-origin YouTube iframes)
+function unmuteAllMediaFrames(volume = 1.0) {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    try {
+        mainWindow.webContents.setAudioMuted(false);
+        const mainFrame = mainWindow.webContents.mainFrame;
+        if (!mainFrame) return;
+
+        const allFrames = [mainFrame, ...(mainFrame.frames || [])];
+        for (const frame of allFrames) {
+            frame.executeJavaScript(`
+                try {
+                    document.querySelectorAll('video, audio').forEach(el => {
+                        el.muted = false;
+                        el.defaultMuted = false;
+                        el.volume = ${volume};
+                        if (el.paused) el.play().catch(() => {});
+                    });
+                } catch(e) {}
+            `).catch(() => {});
+        }
+    } catch(e) {}
+}
+
+ipcMain.on('force-unmute-frames', (event, volume) => {
+    unmuteAllMediaFrames(typeof volume === 'number' ? volume : 1.0);
 });
 
 // IPC Handler for live track sync to OS tray / title

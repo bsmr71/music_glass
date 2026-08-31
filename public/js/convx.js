@@ -863,6 +863,11 @@ class ConvxApp {
                 this.sendYouTubeCommand('setVolume', Math.round((this.audio ? this.audio.volume : 0.8) * 100));
                 this.sendYouTubeCommand('loadVideoById', track.id);
                 this.sendYouTubeCommand('playVideo');
+
+                // Force direct hardware unmute via Electron C++ WebFrameMain API
+                if (window.electronAPI && typeof window.electronAPI.forceUnmute === 'function') {
+                    window.electronAPI.forceUnmute(this.audio ? this.audio.volume : 1.0);
+                }
             }, delay);
         });
 
