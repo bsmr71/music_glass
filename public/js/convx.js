@@ -930,16 +930,28 @@ class ConvxApp {
 
         const container = document.getElementById('yt-player-container');
         if (container) {
-            const origin = window.location.origin || 'http://127.0.0.1:8000';
             container.innerHTML = `
                 <iframe 
                     id="yt-stream-iframe"
-                    src="https://www.youtube.com/embed/${track.id}?autoplay=1&enablejsapi=1&playsinline=1&controls=0&origin=${encodeURIComponent(origin)}"
-                    allow="autoplay; encrypted-media; fullscreen"
-                    style="width: 320px; height: 240px; border: 0;"
+                    src="https://www.youtube-nocookie.com/embed/${track.id}?autoplay=1&enablejsapi=1&playsinline=1&controls=0"
+                    allow="autoplay *; encrypted-media *;"
+                    style="width: 240px; height: 180px; border: 0;"
                 ></iframe>
             `;
         }
+
+        // Send unMute and volume commands
+        setTimeout(() => {
+            this.sendYouTubeCommand('unMute');
+            this.sendYouTubeCommand('setVolume', Math.round((this.audio ? this.audio.volume : 0.8) * 100));
+            this.sendYouTubeCommand('playVideo');
+        }, 300);
+
+        setTimeout(() => {
+            this.sendYouTubeCommand('unMute');
+            this.sendYouTubeCommand('setVolume', Math.round((this.audio ? this.audio.volume : 0.8) * 100));
+            this.sendYouTubeCommand('playVideo');
+        }, 800);
 
         this.isPlaying = true;
         this.updatePlayStateUI();
@@ -969,6 +981,7 @@ class ConvxApp {
                 this.sendYouTubeCommand('pauseVideo');
                 this.isPlaying = false;
             } else {
+                this.sendYouTubeCommand('unMute');
                 this.sendYouTubeCommand('playVideo');
                 this.isPlaying = true;
             }

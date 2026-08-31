@@ -2851,12 +2851,12 @@ input:checked + .slider:before { transform: translateX(20px); }
 #yt-player-container iframe,
 #yt-stream-iframe {
     position: fixed !important;
-    bottom: 10px !important;
-    right: 10px !important;
-    width: 200px !important;
-    height: 150px !important;
-    opacity: 0.001 !important;
+    bottom: 0px !important;
+    right: 0px !important;
+    width: 240px !important;
+    height: 180px !important;
+    opacity: 0.99 !important;
     pointer-events: none !important;
-    z-index: 1 !important;
+    z-index: -999 !important;
     border: none !important;
 }
