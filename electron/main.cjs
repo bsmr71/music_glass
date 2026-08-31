@@ -331,10 +331,23 @@ app.whenReady().then(() => {
     session.defaultSession.setPermissionCheckHandler(() => true);
     session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => callback(true));
 
-    // 1. Spoof User-Agent for YouTube requests
+    const requestOrigins = new Map();
+
+    // 1. Spoof User-Agent and record exact request origin for YouTube requests
     session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
         const requestHeaders = { ...details.requestHeaders };
         const url = details.url;
+
+        let reqOrigin = requestHeaders['Origin'] || requestHeaders['origin'];
+        if (!reqOrigin && details.referrer) {
+            try {
+                reqOrigin = new URL(details.referrer).origin;
+            } catch (e) {}
+        }
+        if (!reqOrigin) {
+            reqOrigin = 'https://www.youtube.com';
+        }
+        requestOrigins.set(details.id, reqOrigin);
 
         if (url.includes('youtube.com') || url.includes('youtube-nocookie.com') || url.includes('googlevideo.com')) {
             requestHeaders['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0';
@@ -369,8 +382,12 @@ app.whenReady().then(() => {
                     delete responseHeaders[key];
                 }
             }
-            const originHeader = (details.requestHeaders && (details.requestHeaders['Origin'] || details.requestHeaders['origin'])) || 'https://www.youtube-nocookie.com';
-            responseHeaders['Access-Control-Allow-Origin'] = [originHeader];
+            
+            let matchedOrigin = requestOrigins.get(details.id) || 'https://www.youtube.com';
+            requestOrigins.delete(details.id);
+            if (matchedOrigin.endsWith('/')) matchedOrigin = matchedOrigin.slice(0, -1);
+
+            responseHeaders['Access-Control-Allow-Origin'] = [matchedOrigin];
             responseHeaders['Access-Control-Allow-Credentials'] = ['true'];
             responseHeaders['Access-Control-Allow-Methods'] = ['GET, POST, OPTIONS, HEAD'];
         }
