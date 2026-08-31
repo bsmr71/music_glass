@@ -987,7 +987,12 @@ class ConvxApp {
         // Extract and Apply Ambient Album Art Color Palette
         this.extractAlbumColors(track.thumbnail);
 
-        // 1. Concurrently fetch and play direct native master audio stream
+        // Immediately pause existing audio before loading new track
+        if (this.audio) {
+            this.audio.pause();
+        }
+
+        // Fetch and play direct native master audio stream
         fetch(`/api/music/stream/${track.id}`)
             .then(res => res.json())
             .then(streamData => {
@@ -997,54 +1002,10 @@ class ConvxApp {
                     this.audio.play().then(() => {
                         this.isPlaying = true;
                         this.updatePlayStateUI();
-                    }).catch(() => {
-                        this.playViaYouTubeEngine(track);
-                    });
-                } else {
-                    this.playViaYouTubeEngine(track);
+                    }).catch(() => {});
                 }
             })
-            .catch(() => {
-                this.playViaYouTubeEngine(track);
-            });
-    }
-
-    playViaYouTubeEngine(track) {
-        this.useYouTubeEngine = true;
-        this.audio.pause();
-
-        this.currentTrackTime = 0;
-        this.currentTrackDuration = track.duration ? this.parseDurationSeconds(track.duration) : 180;
-
-        const embedUrl = `https://www.youtube.com/embed/${track.id}?autoplay=1&mute=0&volume=100&enablejsapi=1&playsinline=1`;
-        const iframe = document.getElementById('yt-stream-iframe');
-        const container = document.getElementById('yt-player-container');
-
-        if (iframe) {
-            iframe.src = embedUrl;
-        } else if (container) {
-            container.innerHTML = `
-                <iframe 
-                    id="yt-stream-iframe"
-                    src="${embedUrl}"
-                    allow="autoplay *; encrypted-media *; picture-in-picture *;"
-                    style="width: 240px; height: 180px; border: 0;"
-                ></iframe>
-            `;
-        }
-
-        // Send unMute, setVolume, and play commands in staggered sequence
-        [200, 600, 1200].forEach(delay => {
-            setTimeout(() => {
-                this.sendYouTubeCommand('unMute');
-                this.sendYouTubeCommand('setVolume', Math.round((this.audio ? this.audio.volume : 0.8) * 100));
-                this.sendYouTubeCommand('loadVideoById', track.id);
-                this.sendYouTubeCommand('playVideo');
-            }, delay);
-        });
-
-        this.isPlaying = true;
-        this.updatePlayStateUI();
+            .catch(() => {});
     }
 
     togglePlay() {
@@ -1066,38 +1027,27 @@ class ConvxApp {
             }
         }
 
-        if (this.useYouTubeEngine) {
-            if (this.isPlaying) {
-                this.sendYouTubeCommand('pauseVideo');
-                this.isPlaying = false;
-            } else {
-                this.sendYouTubeCommand('unMute');
-                this.sendYouTubeCommand('playVideo');
-                this.isPlaying = true;
-            }
-            this.updatePlayStateUI();
-        } else if (this.audio) {
+        if (this.audio) {
             if (this.isPlaying) {
                 this.audio.pause();
+                this.isPlaying = false;
             } else {
                 if (!this.audio.src && this.currentTrack) {
                     this.playTrack(this.currentTrack, false);
                 } else if (this.audio.src) {
-                    this.audio.play().catch(() => {
-                        if (this.currentTrack) this.playViaYouTubeEngine(this.currentTrack);
-                    });
-                } else if (this.currentTrack) {
-                    this.playViaYouTubeEngine(this.currentTrack);
+                    this.audio.play().then(() => {
+                        this.isPlaying = true;
+                    }).catch(() => {});
+                    this.isPlaying = true;
                 }
             }
+            this.updatePlayStateUI();
         }
     }
 
     prevTrack() {
         if (this.queue.length === 0) return;
-        const currentTime = this.useYouTubeEngine && this.ytPlayer?.getCurrentTime 
-            ? (this.ytPlayer.getCurrentTime() || 0) 
-            : this.audio.currentTime;
+        const currentTime = this.audio ? this.audio.currentTime : 0;
 
         if (currentTime > 3) {
             this.seekToPercent(0);
