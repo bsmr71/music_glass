@@ -97,8 +97,8 @@
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/bsmr71/convx_web.git
-   cd convx_web
+   git clone https://github.com/bsmr71/music_glass.git
+   cd music_glass
    ```
 
 2. **Install PHP dependencies:**
@@ -132,7 +132,7 @@
 ## 📁 Project Architecture
 
 ```
-convx_web/
+music_glass/
 ├── app/
 │   ├── Http/
 │   │   └── Controllers/
