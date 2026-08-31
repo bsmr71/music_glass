@@ -224,6 +224,7 @@ class ConvxApp {
         this.startVisualizer();
         this.checkUrlRoute();
         this.setupElectronBridge();
+        this.initAuth();
     }
 
     /**
@@ -2376,5 +2377,414 @@ class ConvxApp {
         this.activeRoom = null;
         this.dom.roomActiveStatus.classList.add('hidden');
         this.dom.activeRoomPill.classList.add('hidden');
+    }
+
+    /**
+     * ==================== LIQUID GLASS AUTHENTICATION ENGINE ====================
+     */
+    async initAuth() {
+        this.currentUser = null;
+        this.pendingVerifyEmail = null;
+
+        // Cache elements
+        const authModal = document.getElementById('auth-modal');
+        const btnAuthUser = document.getElementById('btn-auth-user');
+        const btnCloseModal = document.getElementById('btn-close-auth-modal');
+        const tabLoginBtn = document.getElementById('tab-login-btn');
+        const tabRegisterBtn = document.getElementById('tab-register-btn');
+        const formLogin = document.getElementById('form-login');
+        const formRegister = document.getElementById('form-register');
+        const formVerifyOtp = document.getElementById('form-verify-otp');
+        const btnGoogleLogin = document.getElementById('btn-google-login');
+        const btnResendOtp = document.getElementById('btn-resend-otp');
+        const btnBackToLogin = document.getElementById('btn-back-to-login');
+        const btnLogoutAccount = document.getElementById('btn-logout-account');
+        const btnAutoFillCode = document.getElementById('btn-auto-fill-code');
+        const btnProfileExplore = document.getElementById('btn-profile-explore');
+
+        // Check active session on startup
+        await this.checkAuthSession();
+
+        // Open Auth Modal from Topbar
+        if (btnAuthUser) {
+            btnAuthUser.addEventListener('click', () => {
+                if (this.currentUser) {
+                    this.showAuthView('profile');
+                } else {
+                    this.showAuthView('form');
+                }
+                if (authModal) authModal.classList.add('active');
+            });
+        }
+
+        // Close Auth Modal
+        if (btnCloseModal && authModal) {
+            btnCloseModal.addEventListener('click', () => {
+                authModal.classList.remove('active');
+            });
+            authModal.addEventListener('click', (e) => {
+                if (e.target === authModal) authModal.classList.remove('active');
+            });
+        }
+
+        // Switch between Login & Register tabs
+        if (tabLoginBtn && tabRegisterBtn) {
+            tabLoginBtn.addEventListener('click', () => {
+                tabLoginBtn.classList.add('active');
+                tabRegisterBtn.classList.remove('active');
+                if (formLogin) { formLogin.classList.remove('hidden'); formLogin.classList.add('active'); }
+                if (formRegister) { formRegister.classList.add('hidden'); formRegister.classList.remove('active'); }
+                const title = document.getElementById('auth-modal-title');
+                const sub = document.getElementById('auth-modal-subtitle');
+                if (title) title.textContent = 'Masuk ke Music Glass';
+                if (sub) sub.textContent = 'Nikmati pengalaman mendengarkan musik Liquid Glass tanpa batas.';
+            });
+
+            tabRegisterBtn.addEventListener('click', () => {
+                tabRegisterBtn.classList.add('active');
+                tabLoginBtn.classList.remove('active');
+                if (formRegister) { formRegister.classList.remove('hidden'); formRegister.classList.add('active'); }
+                if (formLogin) { formLogin.classList.add('hidden'); formLogin.classList.remove('active'); }
+                const title = document.getElementById('auth-modal-title');
+                const sub = document.getElementById('auth-modal-subtitle');
+                if (title) title.textContent = 'Buat Akun Music Glass';
+                if (sub) sub.textContent = 'Daftar sekarang untuk sinkronisasi playlist, favorit, dan riwayat musik.';
+            });
+        }
+
+        // Password visibility toggles
+        document.querySelectorAll('.btn-toggle-pwd').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.dataset.target;
+                const input = document.getElementById(targetId);
+                if (input) {
+                    const isPwd = input.type === 'password';
+                    input.type = isPwd ? 'text' : 'password';
+                    btn.innerHTML = isPwd ? '<i data-lucide="eye-off"></i>' : '<i data-lucide="eye"></i>';
+                    if (window.lucide) lucide.createIcons();
+                }
+            });
+        });
+
+        // Submit Login Form
+        if (formLogin) {
+            formLogin.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value.trim();
+                const password = document.getElementById('login-password').value;
+                const remember = document.getElementById('login-remember').checked;
+                const errorMsg = document.getElementById('login-error-msg');
+                const submitBtn = document.getElementById('btn-submit-login');
+
+                if (errorMsg) errorMsg.classList.add('hidden');
+                if (submitBtn) submitBtn.disabled = true;
+
+                try {
+                    const res = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({ email, password, remember })
+                    });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        this.currentUser = data.user;
+                        this.updateUserUI();
+                        if (authModal) authModal.classList.remove('active');
+                        this.showNotification(`Selamat datang kembali, ${data.user.name}!`, 'success');
+                    } else if (data.unverified) {
+                        this.pendingVerifyEmail = data.email;
+                        this.showVerifyOtpView(data.email, data.verification_code);
+                    } else {
+                        if (errorMsg) {
+                            errorMsg.textContent = data.message || 'Login gagal. Periksa email dan kata sandi Anda.';
+                            errorMsg.classList.remove('hidden');
+                        }
+                    }
+                } catch (err) {
+                    if (errorMsg) {
+                        errorMsg.textContent = 'Terjadi kesalahan koneksi server.';
+                        errorMsg.classList.remove('hidden');
+                    }
+                } finally {
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+            });
+        }
+
+        // Submit Register Form
+        if (formRegister) {
+            formRegister.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('reg-name').value.trim();
+                const email = document.getElementById('reg-email').value.trim();
+                const password = document.getElementById('reg-password').value;
+                const password_confirmation = document.getElementById('reg-password-conf').value;
+                const errorMsg = document.getElementById('reg-error-msg');
+                const submitBtn = document.getElementById('btn-submit-register');
+
+                if (errorMsg) errorMsg.classList.add('hidden');
+                if (submitBtn) submitBtn.disabled = true;
+
+                try {
+                    const res = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({ name, email, password, password_confirmation })
+                    });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        this.pendingVerifyEmail = email;
+                        this.showVerifyOtpView(email, data.verification_code);
+                        this.showNotification('Pendaftaran berhasil! Silakan masukkan kode verifikasi.', 'info');
+                    } else {
+                        if (errorMsg) {
+                            errorMsg.textContent = data.message || 'Pendaftaran gagal.';
+                            errorMsg.classList.remove('hidden');
+                        }
+                    }
+                } catch (err) {
+                    if (errorMsg) {
+                        errorMsg.textContent = 'Terjadi kesalahan saat memproses pendaftaran.';
+                        errorMsg.classList.remove('hidden');
+                    }
+                } finally {
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+            });
+        }
+
+        // Submit Verify OTP Form
+        if (formVerifyOtp) {
+            formVerifyOtp.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const code = document.getElementById('otp-code-input').value.trim();
+                const errorMsg = document.getElementById('verify-error-msg');
+                const successMsg = document.getElementById('verify-success-msg');
+                const submitBtn = document.getElementById('btn-submit-verify');
+
+                if (errorMsg) errorMsg.classList.add('hidden');
+                if (successMsg) successMsg.classList.add('hidden');
+                if (submitBtn) submitBtn.disabled = true;
+
+                try {
+                    const res = await fetch('/api/auth/verify-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({ email: this.pendingVerifyEmail, code })
+                    });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        if (successMsg) {
+                            successMsg.textContent = data.message;
+                            successMsg.classList.remove('hidden');
+                        }
+                        this.currentUser = data.user;
+                        this.updateUserUI();
+                        setTimeout(() => {
+                            if (authModal) authModal.classList.remove('active');
+                            this.showNotification(`Email berhasil diverifikasi! Selamat datang, ${data.user.name}!`, 'success');
+                        }, 1200);
+                    } else {
+                        if (errorMsg) {
+                            errorMsg.textContent = data.message || 'Kode verifikasi salah.';
+                            errorMsg.classList.remove('hidden');
+                        }
+                    }
+                } catch (err) {
+                    if (errorMsg) {
+                        errorMsg.textContent = 'Terjadi kesalahan koneksi server.';
+                        errorMsg.classList.remove('hidden');
+                    }
+                } finally {
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+            });
+        }
+
+        // Auto Fill Code Button
+        if (btnAutoFillCode) {
+            btnAutoFillCode.addEventListener('click', () => {
+                const codeDisplay = document.getElementById('verify-code-display');
+                const input = document.getElementById('otp-code-input');
+                if (codeDisplay && input) {
+                    input.value = codeDisplay.textContent.trim();
+                    input.focus();
+                }
+            });
+        }
+
+        // Resend OTP Code
+        if (btnResendOtp) {
+            btnResendOtp.addEventListener('click', async () => {
+                if (!this.pendingVerifyEmail) return;
+                try {
+                    const res = await fetch('/api/auth/resend-code', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({ email: this.pendingVerifyEmail })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.showVerifyOtpView(this.pendingVerifyEmail, data.verification_code);
+                        this.showNotification(data.message, 'success');
+                    }
+                } catch (e) {}
+            });
+        }
+
+        // Back to login button
+        if (btnBackToLogin) {
+            btnBackToLogin.addEventListener('click', () => {
+                this.showAuthView('form');
+                if (tabLoginBtn) tabLoginBtn.click();
+            });
+        }
+
+        // Google / YouTube One-Click Sign In
+        if (btnGoogleLogin) {
+            btnGoogleLogin.addEventListener('click', async () => {
+                const googlePayload = {
+                    name: 'Bintang Pratama',
+                    email: 'bintang.pratama@gmail.com',
+                    google_id: 'goog_8829104819',
+                    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=BintangPratama'
+                };
+
+                try {
+                    const res = await fetch('/api/auth/google', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify(googlePayload)
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.currentUser = data.user;
+                        this.updateUserUI();
+                        if (authModal) authModal.classList.remove('active');
+                        this.showNotification(`Berhasil masuk dengan Google: ${data.user.name}!`, 'success');
+                    }
+                } catch (e) {
+                    this.showNotification('Gagal menghubungkan akun Google.', 'error');
+                }
+            });
+        }
+
+        // Logout Account
+        if (btnLogoutAccount) {
+            btnLogoutAccount.addEventListener('click', async () => {
+                try {
+                    await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    this.currentUser = null;
+                    this.updateUserUI();
+                    if (authModal) authModal.classList.remove('active');
+                    this.showNotification('Anda telah berhasil keluar dari akun.', 'info');
+                } catch (e) {}
+            });
+        }
+
+        // Explore button from Profile Modal
+        if (btnProfileExplore) {
+            btnProfileExplore.addEventListener('click', () => {
+                if (authModal) authModal.classList.remove('active');
+                this.switchView('discover');
+            });
+        }
+    }
+
+    async checkAuthSession() {
+        try {
+            const res = await fetch('/api/auth/me', {
+                headers: { 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.authenticated && data.user) {
+                this.currentUser = data.user;
+            } else {
+                this.currentUser = null;
+            }
+            this.updateUserUI();
+        } catch (e) {}
+    }
+
+    updateUserUI() {
+        const topbarAvatar = document.getElementById('topbar-user-avatar');
+        const topbarName = document.getElementById('topbar-user-name');
+        const topbarSub = document.getElementById('topbar-user-sub');
+        const profileAvatar = document.getElementById('user-profile-avatar-img');
+        const profileName = document.getElementById('user-profile-name');
+        const profileEmail = document.getElementById('user-profile-email');
+        const statFav = document.getElementById('stat-fav-count');
+        const statPl = document.getElementById('stat-pl-count');
+        const statHistory = document.getElementById('stat-history-count');
+
+        if (this.currentUser) {
+            const avatarUrl = this.currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(this.currentUser.name)}`;
+            if (topbarAvatar) topbarAvatar.src = avatarUrl;
+            if (topbarName) topbarName.textContent = this.currentUser.name;
+            if (topbarSub) topbarSub.textContent = 'PRO Member';
+
+            if (profileAvatar) profileAvatar.src = avatarUrl;
+            if (profileName) profileName.textContent = this.currentUser.name;
+            if (profileEmail) profileEmail.textContent = this.currentUser.email;
+
+            if (statFav) statFav.textContent = this.favorites ? this.favorites.size : '0';
+            if (statPl) statPl.textContent = this.playlists ? this.playlists.length : '0';
+            if (statHistory) statHistory.textContent = this.history ? this.history.length : '0';
+        } else {
+            if (topbarAvatar) topbarAvatar.src = 'https://api.dicebear.com/7.x/bottts/svg?seed=Guest';
+            if (topbarName) topbarName.textContent = 'Masuk / Daftar';
+            if (topbarSub) topbarSub.textContent = 'Liquid Glass';
+        }
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    showAuthView(viewName) {
+        const viewForm = document.getElementById('auth-view-form');
+        const viewVerify = document.getElementById('auth-view-verify');
+        const viewProfile = document.getElementById('auth-view-profile');
+
+        if (viewForm) viewForm.classList.add('hidden');
+        if (viewVerify) viewVerify.classList.add('hidden');
+        if (viewProfile) viewProfile.classList.add('hidden');
+
+        if (viewName === 'form' && viewForm) viewForm.classList.remove('hidden');
+        if (viewName === 'verify' && viewVerify) viewVerify.classList.remove('hidden');
+        if (viewName === 'profile' && viewProfile) {
+            this.updateUserUI();
+            viewProfile.classList.remove('hidden');
+        }
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    showVerifyOtpView(email, code) {
+        this.pendingVerifyEmail = email;
+        const targetEmail = document.getElementById('verify-target-email');
+        const hintWrap = document.getElementById('verify-instant-hint');
+        const codeDisplay = document.getElementById('verify-code-display');
+        const errorMsg = document.getElementById('verify-error-msg');
+        const successMsg = document.getElementById('verify-success-msg');
+        const otpInput = document.getElementById('otp-code-input');
+
+        if (targetEmail) targetEmail.textContent = email;
+        if (errorMsg) errorMsg.classList.add('hidden');
+        if (successMsg) successMsg.classList.add('hidden');
+        if (otpInput) { otpInput.value = ''; otpInput.focus(); }
+
+        if (code) {
+            if (codeDisplay) codeDisplay.textContent = code;
+            if (hintWrap) hintWrap.classList.remove('hidden');
+        } else {
+            if (hintWrap) hintWrap.classList.add('hidden');
+        }
+
+        this.showAuthView('verify');
     }
 }

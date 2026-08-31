@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\MusicController;
 use App\Http\Controllers\RoomController;
@@ -7,6 +8,15 @@ use Illuminate\Support\Facades\Route;
 
 // ==================== API ROUTES ====================
 Route::prefix('api')->group(function () {
+    // Authentication & Account
+    Route::post('/auth/register', [AuthController::class, 'register']);
+    Route::post('/auth/verify-email', [AuthController::class, 'verifyEmail']);
+    Route::post('/auth/resend-code', [AuthController::class, 'resendCode']);
+    Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::post('/auth/google', [AuthController::class, 'googleLogin']);
+    Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+
     // Music & Streaming
     Route::get('/music/search', [MusicController::class, 'search']);
     Route::get('/music/trending', [MusicController::class, 'trending']);

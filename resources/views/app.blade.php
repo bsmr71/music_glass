@@ -159,6 +159,16 @@
                         <span class="queue-counter" id="queue-counter-badge">0</span>
                     </button>
 
+                    <!-- Dynamic User Auth & Profile Pill -->
+                    <button class="auth-profile-pill" id="btn-auth-user" title="Akun Pengguna">
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Guest" alt="Avatar" class="profile-avatar-img" id="topbar-user-avatar">
+                        <div class="profile-info-text">
+                            <span class="profile-name" id="topbar-user-name">Masuk / Daftar</span>
+                            <span class="profile-sub" id="topbar-user-sub">Liquid Glass</span>
+                        </div>
+                        <i data-lucide="user" class="profile-status-icon" id="topbar-user-icon"></i>
+                    </button>
+
                     <!-- GitHub Profile & Account Pill -->
                     <a href="https://github.com/bsmr71/music_glass" target="_blank" class="github-profile-pill" id="btn-github-profile" title="bsmr71 on GitHub">
                         <img src="https://github.com/bsmr71.png" alt="bsmr71" class="profile-avatar-img" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'">
@@ -813,6 +823,186 @@
                     <button class="timer-opt-btn text-danger" data-minutes="off">Turn Off Timer</button>
                 </div>
                 <div id="timer-active-label" class="timer-status hidden">Timer active: <span id="timer-countdown"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== LIQUID GLASS AUTH MODAL (LOGIN / REGISTER / VERIFY) ==================== -->
+    <div class="glass-modal-overlay" id="auth-modal">
+        <div class="glass-modal-content auth-modal-card">
+            <button class="modal-close-btn" id="btn-close-auth-modal"><i data-lucide="x"></i></button>
+
+            <!-- Subview 1: Auth Forms (Login & Register) -->
+            <div id="auth-view-form" class="auth-subview active">
+                <div class="auth-header">
+                    <div class="auth-logo-badge">
+                        <i data-lucide="sparkles" class="auth-sparkle-icon"></i>
+                    </div>
+                    <h3 id="auth-modal-title" class="auth-title">Masuk ke Music Glass</h3>
+                    <p id="auth-modal-subtitle" class="auth-subtitle">Nikmati pengalaman mendengarkan musik Liquid Glass tanpa batas.</p>
+                </div>
+
+                <!-- Google / YouTube One-Click Sign In -->
+                <div class="auth-social-wrap">
+                    <button type="button" class="btn-social-google" id="btn-google-login">
+                        <svg class="google-svg" width="18" height="18" viewBox="0 0 24 24">
+                            <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"/>
+                            <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
+                            <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.1s.7 5.4 1.9 7.8l3.7-2.9z"/>
+                            <path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 17C3.7 20.7 7.5 23.5 12 23.5z"/>
+                        </svg>
+                        <span>Lanjutkan dengan Google / YouTube</span>
+                    </button>
+                </div>
+
+                <!-- Glass Divider -->
+                <div class="auth-divider">
+                    <span>ATAU DENGAN EMAIL</span>
+                </div>
+
+                <!-- Auth Form Switcher Tabs -->
+                <div class="auth-tabs">
+                    <button type="button" class="auth-tab-btn active" id="tab-login-btn">Masuk</button>
+                    <button type="button" class="auth-tab-btn" id="tab-register-btn">Daftar Baru</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="form-login" class="auth-form active">
+                    <div class="input-field">
+                        <label for="login-email"><i data-lucide="mail"></i> Email</label>
+                        <input type="email" id="login-email" required placeholder="nama@email.com" autocomplete="email">
+                    </div>
+                    <div class="input-field">
+                        <label for="login-password"><i data-lucide="lock"></i> Kata Sandi</label>
+                        <div class="password-input-wrap">
+                            <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password">
+                            <button type="button" class="btn-toggle-pwd" data-target="login-password"><i data-lucide="eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="auth-extra-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="login-remember" checked>
+                            <span>Ingat Saya</span>
+                        </label>
+                    </div>
+                    <div id="login-error-msg" class="auth-alert error hidden"></div>
+                    <button type="submit" class="btn-primary-glass btn-auth-submit" id="btn-submit-login">
+                        <span>Masuk ke Akun</span>
+                        <i data-lucide="arrow-right"></i>
+                    </button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="form-register" class="auth-form hidden">
+                    <div class="input-field">
+                        <label for="reg-name"><i data-lucide="user"></i> Nama Lengkap</label>
+                        <input type="text" id="reg-name" required placeholder="Contoh: Bintang Pratama" autocomplete="name">
+                    </div>
+                    <div class="input-field">
+                        <label for="reg-email"><i data-lucide="mail"></i> Alamat Email</label>
+                        <input type="email" id="reg-email" required placeholder="nama@email.com" autocomplete="email">
+                    </div>
+                    <div class="input-field">
+                        <label for="reg-password"><i data-lucide="lock"></i> Kata Sandi</label>
+                        <div class="password-input-wrap">
+                            <input type="password" id="reg-password" required placeholder="Minimal 6 karakter" autocomplete="new-password">
+                            <button type="button" class="btn-toggle-pwd" data-target="reg-password"><i data-lucide="eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="input-field">
+                        <label for="reg-password-conf"><i data-lucide="check-check"></i> Konfirmasi Kata Sandi</label>
+                        <div class="password-input-wrap">
+                            <input type="password" id="reg-password-conf" required placeholder="Ulangi kata sandi" autocomplete="new-password">
+                            <button type="button" class="btn-toggle-pwd" data-target="reg-password-conf"><i data-lucide="eye"></i></button>
+                        </div>
+                    </div>
+                    <div id="reg-error-msg" class="auth-alert error hidden"></div>
+                    <button type="submit" class="btn-primary-glass btn-auth-submit" id="btn-submit-register">
+                        <span>Daftar & Kirim Kode Verifikasi</span>
+                        <i data-lucide="send"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Subview 2: Email Verification OTP Screen -->
+            <div id="auth-view-verify" class="auth-subview hidden">
+                <div class="auth-header">
+                    <div class="auth-logo-badge pulse">
+                        <i data-lucide="mail-check" class="auth-sparkle-icon"></i>
+                    </div>
+                    <h3 class="auth-title">Verifikasi Email Anda</h3>
+                    <p class="auth-subtitle">
+                        Kami telah mengirimkan 6-digit kode verifikasi ke: <br>
+                        <strong id="verify-target-email" class="text-neon-purple">user@example.com</strong>
+                    </p>
+                </div>
+
+                <!-- Instant Verification Code Helper Banner -->
+                <div id="verify-instant-hint" class="verify-instant-hint hidden">
+                    <div class="hint-badge"><i data-lucide="key"></i> Kode Verifikasi Anda:</div>
+                    <div class="hint-code" id="verify-code-display">123456</div>
+                    <button type="button" class="btn-hint-fill" id="btn-auto-fill-code">Klik untuk Isi Otomatis</button>
+                </div>
+
+                <form id="form-verify-otp" class="auth-form active">
+                    <div class="input-field">
+                        <label for="otp-code-input"><i data-lucide="shield-check"></i> Masukkan 6-Digit Kode Verifikasi</label>
+                        <input type="text" id="otp-code-input" maxlength="6" pattern="[0-9]{6}" required placeholder="Contoh: 849201" class="otp-input-field">
+                    </div>
+
+                    <div id="verify-error-msg" class="auth-alert error hidden"></div>
+                    <div id="verify-success-msg" class="auth-alert success hidden"></div>
+
+                    <button type="submit" class="btn-primary-glass btn-auth-submit" id="btn-submit-verify">
+                        <span>Verifikasi & Masuk Otomatis</span>
+                        <i data-lucide="check-circle-2"></i>
+                    </button>
+
+                    <div class="verify-footer-actions">
+                        <button type="button" class="btn-link-action" id="btn-resend-otp">Kirim Ulang Kode</button>
+                        <button type="button" class="btn-link-action text-muted" id="btn-back-to-login">Kembali ke Login</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Subview 3: User Profile & Account Management -->
+            <div id="auth-view-profile" class="auth-subview hidden">
+                <div class="auth-header">
+                    <div class="user-profile-avatar-wrap">
+                        <img id="user-profile-avatar-img" src="https://api.dicebear.com/7.x/bottts/svg?seed=MusicGlass" alt="Avatar" class="user-large-avatar">
+                        <span class="user-verified-badge" title="Akun Terverifikasi"><i data-lucide="badge-check"></i></span>
+                    </div>
+                    <h3 id="user-profile-name" class="auth-title">Nama Pengguna</h3>
+                    <p id="user-profile-email" class="auth-subtitle">user@email.com</p>
+                    <div class="profile-meta-tags">
+                        <span class="meta-tag neon-pill"><i data-lucide="sparkles"></i> PRO Member</span>
+                        <span class="meta-tag" id="user-profile-joined">Sejak Agu 2026</span>
+                    </div>
+                </div>
+
+                <div class="profile-stats-grid">
+                    <div class="profile-stat-box">
+                        <span class="stat-number" id="stat-fav-count">0</span>
+                        <span class="stat-label">Lagu Favorit</span>
+                    </div>
+                    <div class="profile-stat-box">
+                        <span class="stat-number" id="stat-pl-count">0</span>
+                        <span class="stat-label">Playlist</span>
+                    </div>
+                    <div class="profile-stat-box">
+                        <span class="stat-number" id="stat-history-count">0</span>
+                        <span class="stat-label">Diputar</span>
+                    </div>
+                </div>
+
+                <div class="profile-actions-list">
+                    <button type="button" class="btn-primary-glass w-full" id="btn-profile-explore">
+                        <i data-lucide="music"></i> Mulai Dengarkan Musik
+                    </button>
+                    <button type="button" class="btn-secondary-glass w-full text-danger" id="btn-logout-account">
+                        <i data-lucide="log-out"></i> Keluar dari Akun (Logout)
+                    </button>
+                </div>
             </div>
         </div>
     </div>
