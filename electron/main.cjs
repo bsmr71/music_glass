@@ -81,6 +81,8 @@ function startPhpServerIfNeeded(onReady) {
 }
 
 function createWindow() {
+    const cleanUserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+
     mainWindow = new BrowserWindow({
         width: 1280,
         height: 840,
@@ -94,11 +96,14 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.cjs'),
             nodeIntegration: false,
             contextIsolation: true,
-            webSecurity: true
+            webSecurity: false, // Allows cross-origin audio streaming & YouTube embeds
+            allowRunningInsecureContent: true
         }
     });
 
-    mainWindow.loadURL(APP_URL);
+    // Spoof User-Agent so YouTube Iframe API doesn't block Electron
+    mainWindow.webContents.setUserAgent(cleanUserAgent);
+    mainWindow.loadURL(APP_URL, { userAgent: cleanUserAgent });
 
     // Open external web links in user's default browser
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -109,7 +114,7 @@ function createWindow() {
     mainWindow.webContents.on('did-fail-load', () => {
         console.warn(`[Music Glass] Failed to load ${APP_URL}. Retrying in 2 seconds...`);
         setTimeout(() => {
-            if (mainWindow) mainWindow.loadURL(APP_URL);
+            if (mainWindow) mainWindow.loadURL(APP_URL, { userAgent: cleanUserAgent });
         }, 2000);
     });
 
