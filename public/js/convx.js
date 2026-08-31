@@ -734,19 +734,31 @@ class ConvxApp {
                 this.playViaYouTubeEngine(this.currentTrack);
             }
         });
-    }
-
-    /**
+    }    /**
      * Setup Universal YouTube Streaming Engine
      */
     setupYouTubeAPI() {
-        // 1. Universal postMessage listener for YouTube embed iframe state sync
+        // 1. Universal postMessage listener for YouTube embed iframe state sync & automatic unmute
         window.addEventListener('message', (event) => {
             if (!event || typeof event.data !== 'string') return;
             try {
                 const data = JSON.parse(event.data);
+
+                // When YouTube iframe reports it is ready, immediately unmute and set full volume!
+                if (data.event === 'onReady' || data.event === 'initialDelivery') {
+                    this.sendYouTubeCommand('unMute');
+                    this.sendYouTubeCommand('setVolume', Math.round((this.audio ? this.audio.volume : 0.8) * 100));
+                    this.sendYouTubeCommand('playVideo');
+                }
+
                 if (data.event === 'infoDelivery' && data.info) {
                     const info = data.info;
+                    if (info.muted === true) {
+                        this.sendYouTubeCommand('unMute');
+                    }
+                    if (typeof info.volume === 'number' && info.volume < 10) {
+                        this.sendYouTubeCommand('setVolume', Math.round((this.audio ? this.audio.volume : 0.8) * 100));
+                    }
                     if (typeof info.duration === 'number' && info.duration > 0) {
                         this.currentTrackDuration = info.duration;
                     }
@@ -812,7 +824,44 @@ class ConvxApp {
         }, 250);
     }
 
-    /**
+    playViaYouTubeEngine(track) {
+        this.useYouTubeEngine = true;
+        this.audio.pause();
+
+        this.currentTrackTime = 0;
+        this.currentTrackDuration = track.duration ? this.parseDurationSeconds(track.duration) : 180;
+
+        const originParam = encodeURIComponent(window.location.origin || 'http://127.0.0.1:8000');
+        const embedUrl = `https://www.youtube.com/embed/${track.id}?autoplay=1&mute=0&volume=100&enablejsapi=1&playsinline=1&origin=${originParam}&widget_referrer=${originParam}`;
+        const iframe = document.getElementById('yt-stream-iframe');
+        const container = document.getElementById('yt-player-container');
+
+        if (iframe) {
+            iframe.src = embedUrl;
+        } else if (container) {
+            container.innerHTML = `
+                <iframe 
+                    id="yt-stream-iframe"
+                    src="${embedUrl}"
+                    allow="autoplay *; encrypted-media *; picture-in-picture *;"
+                    style="width: 240px; height: 180px; border: 0;"
+                ></iframe>
+            `;
+        }
+
+        // Send unMute, setVolume, and play commands in staggered sequence
+        [100, 300, 700, 1500].forEach(delay => {
+            setTimeout(() => {
+                this.sendYouTubeCommand('unMute');
+                this.sendYouTubeCommand('setVolume', Math.round((this.audio ? this.audio.volume : 0.8) * 100));
+                this.sendYouTubeCommand('loadVideoById', track.id);
+                this.sendYouTubeCommand('playVideo');
+            }, delay);
+        });
+
+        this.isPlaying = true;
+        this.updatePlayStateUI();
+    }  /**
      * Initialize Web Audio API for 10-Band Equalizer & Visualizer
      */
     initAudioContext() {
