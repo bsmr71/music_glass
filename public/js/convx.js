@@ -840,7 +840,7 @@ class ConvxApp {
         this.currentTrackDuration = track.duration ? this.parseDurationSeconds(track.duration) : 180;
 
         const originParam = encodeURIComponent(window.location.origin || 'http://127.0.0.1:8000');
-        const embedUrl = `https://www.youtube.com/embed/${track.id}?autoplay=1&mute=0&volume=100&enablejsapi=1&playsinline=1&origin=${originParam}&widget_referrer=${originParam}`;
+        const embedUrl = `https://www.youtube-nocookie.com/embed/${track.id}?autoplay=1&mute=0&volume=100&enablejsapi=1&playsinline=1&origin=${originParam}&widget_referrer=${originParam}`;
         const iframe = document.getElementById('yt-stream-iframe');
         const container = document.getElementById('yt-player-container');
 

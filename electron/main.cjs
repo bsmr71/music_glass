@@ -327,7 +327,8 @@ app.whenReady().then(() => {
                     delete responseHeaders[key];
                 }
             }
-            responseHeaders['Access-Control-Allow-Origin'] = ['https://www.youtube.com'];
+            const originHeader = (details.requestHeaders && (details.requestHeaders['Origin'] || details.requestHeaders['origin'])) || 'https://www.youtube-nocookie.com';
+            responseHeaders['Access-Control-Allow-Origin'] = [originHeader];
             responseHeaders['Access-Control-Allow-Credentials'] = ['true'];
             responseHeaders['Access-Control-Allow-Methods'] = ['GET, POST, OPTIONS, HEAD'];
         }
