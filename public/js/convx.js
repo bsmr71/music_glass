@@ -983,10 +983,6 @@ class ConvxApp {
     }
 
     togglePlay() {
-        this.initAudioContext();
-        if (this.audioCtx && this.audioCtx.state === 'suspended') {
-            this.audioCtx.resume();
-        }
 
         // If no track loaded, try to play first song in queue or quick picks
         if (!this.currentTrack) {
