@@ -23,6 +23,8 @@
 
 **Convx Web** is a music streaming web client engineered with a custom **Liquid Glass (Glassmorphism)** design system and powered by the **Web Audio API**. It delivers seamless zero-lag streaming from YouTube Music alongside synchronized lyrics, a 10-band hardware-grade equalizer, and synchronized listening rooms.
 
+> 💡 **Inspiration**: Project ini terinspirasi dari aplikasi mobile [Convx](https://github.com/cosmictaserdev-creator/Convx) karya **[cosmictaserdev-creator](https://github.com/cosmictaserdev-creator)** dan dibuat sebagai adaptasi **versi web** (*Full-featured Web Version*) dengan teknologi modern berbasis browser.
+
 ---
 
 ## ✨ Key Features
@@ -179,6 +181,15 @@ music_glass/
 | `GET` | `/api/history` | Get playback history |
 | `POST` | `/api/rooms` | Create Listen Together room |
 | `POST` | `/api/rooms/{code}/sync` | Sync room playback state |
+
+---
+
+## 🙏 Acknowledgments & Credits
+
+- **Original Inspiration**: Project ini terinspirasi dari aplikasi mobile [Convx](https://github.com/cosmictaserdev-creator/Convx) yang dikembangkan oleh **[cosmictaserdev-creator](https://github.com/cosmictaserdev-creator)**, dan dibuat ulang sebagai **versi web** modern yang berjalan di browser.
+- **Karaoke Lyrics API**: [LRCLIB](https://lrclib.net) untuk penyediaan lirik lagu yang tersinkronisasi.
+- **Icons**: [Lucide Icons](https://lucide.dev).
+- **Color Palette Extraction**: [ColorThief](https://lokeshdhakar.com/projects/color-thief/).
 
 ---
 
