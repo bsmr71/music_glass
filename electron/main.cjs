@@ -290,42 +290,38 @@ app.whenReady().then(() => {
     session.defaultSession.setPermissionCheckHandler(() => true);
     session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => callback(true));
 
-    // 1. Spoof headers for YouTube embed and audio playback with matching YouTube origin
+    // 1. Spoof User-Agent for YouTube requests
     session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
         const requestHeaders = { ...details.requestHeaders };
         const url = details.url;
 
         if (url.includes('youtube.com') || url.includes('youtube-nocookie.com') || url.includes('googlevideo.com')) {
             requestHeaders['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
-            if (!requestHeaders['Origin'] || requestHeaders['Origin'].includes('127.0.0.1') || requestHeaders['Origin'].includes('localhost')) {
-                requestHeaders['Origin'] = 'https://www.youtube.com';
-            }
-            if (!requestHeaders['Referer'] || requestHeaders['Referer'].includes('127.0.0.1') || requestHeaders['Referer'].includes('localhost')) {
-                requestHeaders['Referer'] = 'https://www.youtube.com/';
-            }
         }
 
         callback({ requestHeaders });
     });
 
-    // 2. Strip X-Frame-Options, CSP, and grant universal CORS for all media streams
+    // 2. Strip X-Frame-Options, CSP, and grant clean single-value CORS
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
         const responseHeaders = { ...details.responseHeaders };
-        delete responseHeaders['x-frame-options'];
-        delete responseHeaders['X-Frame-Options'];
-        delete responseHeaders['content-security-policy'];
-        delete responseHeaders['Content-Security-Policy'];
-        delete responseHeaders['cross-origin-embedder-policy'];
-        delete responseHeaders['Cross-Origin-Embedder-Policy'];
-        delete responseHeaders['cross-origin-opener-policy'];
-        delete responseHeaders['Cross-Origin-Opener-Policy'];
 
-        // Allow CORS universally for all googlevideo media and audio streams
-        responseHeaders['access-control-allow-origin'] = ['*'];
+        // Cleanly delete all variations of restrictive headers
+        for (const key of Object.keys(responseHeaders)) {
+            const lower = key.toLowerCase();
+            if (
+                lower === 'x-frame-options' ||
+                lower === 'content-security-policy' ||
+                lower === 'cross-origin-embedder-policy' ||
+                lower === 'cross-origin-opener-policy' ||
+                lower === 'access-control-allow-origin'
+            ) {
+                delete responseHeaders[key];
+            }
+        }
+
+        // Set clean single-value CORS wildcard
         responseHeaders['Access-Control-Allow-Origin'] = ['*'];
-        responseHeaders['access-control-allow-headers'] = ['*'];
-        responseHeaders['Access-Control-Allow-Headers'] = ['*'];
-        responseHeaders['access-control-allow-methods'] = ['GET, POST, OPTIONS, HEAD'];
         responseHeaders['Access-Control-Allow-Methods'] = ['GET, POST, OPTIONS, HEAD'];
 
         callback({ responseHeaders });
