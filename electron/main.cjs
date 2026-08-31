@@ -107,6 +107,7 @@ function createWindow() {
 
     // Spoof User-Agent so YouTube Iframe API doesn't block Electron
     mainWindow.webContents.setUserAgent(cleanUserAgent);
+    mainWindow.webContents.setAudioMuted(false);
     mainWindow.loadURL(APP_URL, { userAgent: cleanUserAgent });
 
     // Open external web links in user's default browser
@@ -277,7 +278,21 @@ ipcMain.on('play-state', (event, isPlaying) => {
 
 // App Lifecycle
 app.whenReady().then(() => {
-    // Strip X-Frame-Options and CSP headers for seamless YouTube embed playback in Electron
+    // 1. Spoof headers for YouTube embed and audio playback so Electron is treated like music.youtube.com
+    session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+        const requestHeaders = { ...details.requestHeaders };
+        const url = details.url;
+
+        if (url.includes('youtube.com') || url.includes('youtube-nocookie.com') || url.includes('googlevideo.com')) {
+            requestHeaders['Referer'] = 'https://music.youtube.com/';
+            requestHeaders['Origin'] = 'https://music.youtube.com';
+            requestHeaders['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+        }
+
+        callback({ requestHeaders });
+    });
+
+    // 2. Strip X-Frame-Options and CSP headers for seamless YouTube embed playback in Electron
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
         const responseHeaders = { ...details.responseHeaders };
         delete responseHeaders['x-frame-options'];
