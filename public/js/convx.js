@@ -783,6 +783,14 @@ class ConvxApp {
                         }
                     }
                 }
+                // Capture YouTube Embed Errors (150 = Embedding not allowed, 101, 100, 2)
+                if (data.event === 'onError' || (data.info && typeof data.info.errorCode === 'number')) {
+                    const code = data.info?.errorCode || data.info;
+                    console.warn(`[Music Glass] YouTube embed restriction (${code}) on:`, this.currentTrack?.title);
+                    if (this.currentTrack) {
+                        this.findPlayableAlternative(this.currentTrack);
+                    }
+                }
             } catch (e) {}
         });
 
@@ -861,6 +869,45 @@ class ConvxApp {
 
         this.isPlaying = true;
         this.updatePlayStateUI();
+    }
+
+    /**
+     * Smart Alternative Finder for restricted / unplayable songs
+     */
+    async findPlayableAlternative(track) {
+        if (track._triedAlternative) {
+            this.showNotification(`Lagu "${track.title}" dibatasi oleh label musik. Memutar lagu berikutnya...`, 'info');
+            setTimeout(() => this.nextTrack(), 1200);
+            return;
+        }
+        track._triedAlternative = true;
+
+        console.log(`[Music Glass] Searching playable alternative for "${track.title}"...`);
+        this.showNotification(`Mencari versi audio alternatif untuk "${track.title}"...`, 'info');
+
+        try {
+            const query = encodeURIComponent(`${track.title} ${track.artist || ''} audio`);
+            const res = await fetch(`/api/music/search?q=${query}`);
+            const data = await res.json();
+
+            if (data.results && data.results.length > 0) {
+                // Pick best matching alternative with different video ID
+                const alt = data.results.find(item => item.id !== track.id) || data.results[0];
+                if (alt && alt.id !== track.id) {
+                    console.log(`[Music Glass] Playing alternative ID: ${alt.id} for "${track.title}"`);
+                    alt._triedAlternative = true;
+                    alt.title = track.title;
+                    alt.artist = track.artist;
+                    alt.thumbnail = track.thumbnail || alt.thumbnail;
+                    this.currentTrack = alt;
+                    this.playViaYouTubeEngine(alt);
+                    return;
+                }
+            }
+        } catch (err) {}
+
+        this.showNotification(`Lagu "${track.title}" tidak tersedia di wilayah ini. Memutar lagu berikutnya...`, 'info');
+        setTimeout(() => this.nextTrack(), 1200);
     }  /**
      * Initialize Web Audio API for 10-Band Equalizer & Visualizer
      */
