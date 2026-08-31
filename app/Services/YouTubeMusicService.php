@@ -337,10 +337,43 @@ class YouTubeMusicService
     {
         $cacheKey = 'yt_stream_' . $videoId;
 
-        return Cache::remember($cacheKey, 900, function () use ($videoId) {
+        return Cache::remember($cacheKey, 1800, function () use ($videoId) {
             $streamUrls = [];
 
-            // 1. Try Piped API Instances with fast 1.5s timeout
+            // 1. High-Performance Local yt-dlp Native Stream Extractor
+            $bin = base_path('yt-dlp.exe');
+            if (file_exists($bin)) {
+                try {
+                    $cmd = '"' . $bin . '" --no-warnings --no-playlist -g -f bestaudio "https://www.youtube.com/watch?v=' . escapeshellcmd($videoId) . '" 2>&1';
+                    $url = trim((string)shell_exec($cmd));
+                    if (!empty($url) && str_starts_with($url, 'http')) {
+                        $lines = explode("\n", str_replace("\r", "", $url));
+                        $firstUrl = trim($lines[0]);
+                        if (str_starts_with($firstUrl, 'http')) {
+                            return [
+                                'success' => true,
+                                'videoId' => $videoId,
+                                'title' => '',
+                                'artist' => '',
+                                'duration' => 0,
+                                'thumbnail' => "https://i.ytimg.com/vi/{$videoId}/hqdefault.jpg",
+                                'streams' => [
+                                    [
+                                        'url' => $firstUrl,
+                                        'quality' => 'HQ Master Audio (160kbps)',
+                                        'mimeType' => 'audio/webm',
+                                        'bitrate' => 160000
+                                    ]
+                                ],
+                                'primaryUrl' => $firstUrl,
+                                'source' => 'yt-dlp'
+                            ];
+                        }
+                    }
+                } catch (\Exception $e) {}
+            }
+
+            // 2. Try Piped API Instances as fallback
             foreach (array_slice($this->pipedInstances, 0, 2) as $instance) {
                 try {
                     $res = Http::timeout(1.5)->get($instance . '/streams/' . $videoId);

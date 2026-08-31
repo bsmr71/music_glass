@@ -987,33 +987,26 @@ class ConvxApp {
         // Extract and Apply Ambient Album Art Color Palette
         this.extractAlbumColors(track.thumbnail);
 
-        // 1. INSTANT PLAYBACK VIA YOUTUBE ENGINE (ZERO DELAY!)
-        this.playViaYouTubeEngine(track);
-
-        // 2. Concurrently fetch direct audio stream and failover automatically
+        // 1. Concurrently fetch and play direct native master audio stream
         fetch(`/api/music/stream/${track.id}`)
             .then(res => res.json())
             .then(streamData => {
                 if (streamData && streamData.success && streamData.primaryUrl && this.currentTrack?.id === track.id) {
-                    const currentTime = (this.ytPlayer && typeof this.ytPlayer.getCurrentTime === 'function') 
-                        ? (this.ytPlayer.getCurrentTime() || 0) : 0;
                     this.audio.src = streamData.primaryUrl;
-                    this.audio.currentTime = currentTime;
-
-                    // If YouTube has not started playing yet, engage HTML5 direct audio!
-                    if (!this.isPlaying || (this.ytPlayer && typeof this.ytPlayer.getPlayerState === 'function' && this.ytPlayer.getPlayerState() !== 1)) {
-                        this.audio.play().then(() => {
-                            this.useYouTubeEngine = false;
-                            this.isPlaying = true;
-                            this.updatePlayStateUI();
-                            if (this.ytPlayer && typeof this.ytPlayer.pauseVideo === 'function') {
-                                this.ytPlayer.pauseVideo();
-                            }
-                        }).catch(() => {});
-                    }
+                    this.useYouTubeEngine = false;
+                    this.audio.play().then(() => {
+                        this.isPlaying = true;
+                        this.updatePlayStateUI();
+                    }).catch(() => {
+                        this.playViaYouTubeEngine(track);
+                    });
+                } else {
+                    this.playViaYouTubeEngine(track);
                 }
             })
-            .catch(() => {});
+            .catch(() => {
+                this.playViaYouTubeEngine(track);
+            });
     }
 
     playViaYouTubeEngine(track) {

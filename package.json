@@ -47,6 +47,7 @@
     },
     "dependencies": {
         "@distube/ytdl-core": "^4.16.12",
-        "play-dl": "^1.9.7"
+        "play-dl": "^1.9.7",
+        "yt-dlp-wrap": "^2.3.12"
     }
 }
