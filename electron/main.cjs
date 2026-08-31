@@ -302,7 +302,7 @@ app.whenReady().then(() => {
         callback({ requestHeaders });
     });
 
-    // 2. Strip X-Frame-Options, CSP, and grant clean single-value CORS
+    // 2. Strip X-Frame-Options, CSP, and grant matching origin CORS with credentials
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
         const responseHeaders = { ...details.responseHeaders };
 
@@ -314,14 +314,17 @@ app.whenReady().then(() => {
                 lower === 'content-security-policy' ||
                 lower === 'cross-origin-embedder-policy' ||
                 lower === 'cross-origin-opener-policy' ||
-                lower === 'access-control-allow-origin'
+                lower === 'access-control-allow-origin' ||
+                lower === 'access-control-allow-credentials'
             ) {
                 delete responseHeaders[key];
             }
         }
 
-        // Set clean single-value CORS wildcard
-        responseHeaders['Access-Control-Allow-Origin'] = ['*'];
+        // Match the request Origin dynamically so credentials: 'include' requests are 100% accepted
+        const reqOrigin = (details.requestHeaders && (details.requestHeaders['Origin'] || details.requestHeaders['origin'])) || 'https://www.youtube.com';
+        responseHeaders['Access-Control-Allow-Origin'] = [reqOrigin];
+        responseHeaders['Access-Control-Allow-Credentials'] = ['true'];
         responseHeaders['Access-Control-Allow-Methods'] = ['GET, POST, OPTIONS, HEAD'];
 
         callback({ responseHeaders });
