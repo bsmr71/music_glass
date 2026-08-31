@@ -23,6 +23,10 @@ app.commandLine.appendSwitch('disable-background-timer-throttling');
 app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion,AudioServiceSandbox');
+// Fix Windows WASAPI Audio HRESULT 0x88890004 device invalidation & buffer mismatch
+app.commandLine.appendSwitch('audio-buffer-size', '2048');
+app.commandLine.appendSwitch('try-supported-channel-layouts');
+app.commandLine.appendSwitch('force-wave-audio');
 
 // Enforce single instance
 const gotTheLock = app.requestSingleInstanceLock();
