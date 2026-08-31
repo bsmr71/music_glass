@@ -13,8 +13,13 @@ let currentTrackInfo = { title: 'No track playing', artist: 'Music Glass', isPla
 const APP_URL = process.env.APP_URL || 'http://127.0.0.1:8000';
 const PORT = 8000;
 
-// Enable instant background autoplay without user gesture requirements & prevent iframe suspension
+// Custom safe userData path to prevent disk cache access denied errors
+const userDataPath = path.join(app.getPath('temp'), 'music_glass_profile');
+app.setPath('userData', userDataPath);
+
+// Enable instant background autoplay without user gesture requirements & in-process audio service
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess');
 app.commandLine.appendSwitch('disable-background-timer-throttling');
 app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
@@ -277,6 +282,10 @@ ipcMain.on('play-state', (event, isPlaying) => {
 
 // App Lifecycle
 app.whenReady().then(() => {
+    // Auto-grant all audio and media permissions to subframes
+    session.defaultSession.setPermissionCheckHandler(() => true);
+    session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => callback(true));
+
     // 1. Spoof headers for YouTube embed and audio playback so Electron is treated like music.youtube.com
     session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
         const requestHeaders = { ...details.requestHeaders };
