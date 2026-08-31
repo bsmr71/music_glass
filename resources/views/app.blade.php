@@ -584,6 +584,19 @@
                 <button class="fs-icon-btn" id="fs-btn-toggle-lyrics-view" title="Toggle Synced Karaoke Lyrics">
                     <i data-lucide="mic-2"></i>
                 </button>
+
+                <!-- Custom Liquid Glass Window Controls (Electron Desktop) in Fullscreen Player -->
+                <div class="electron-window-controls" id="fs-electron-controls">
+                    <button class="win-control-btn win-min" id="fs-win-btn-min" title="Minimize">
+                        <svg width="10" height="2" viewBox="0 0 10 2"><line x1="0" y1="1" x2="10" y2="1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    </button>
+                    <button class="win-control-btn win-max" id="fs-win-btn-max" title="Maximize">
+                        <svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+                    </button>
+                    <button class="win-control-btn win-close" id="fs-win-btn-close" title="Close">
+                        <svg width="10" height="10" viewBox="0 0 10 10"><line x1="1.5" y1="1.5" x2="8.5" y2="8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="8.5" y1="1.5" x2="1.5" y2="8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
 

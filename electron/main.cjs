@@ -3,6 +3,8 @@ const path = require('path');
 const http = require('http');
 const { spawn } = require('child_process');
 
+const fs = require('fs');
+
 let mainWindow = null;
 let tray = null;
 let phpProcess = null;
@@ -10,6 +12,10 @@ let currentTrackInfo = { title: 'No track playing', artist: 'Music Glass', isPla
 
 const APP_URL = process.env.APP_URL || 'http://127.0.0.1:8000';
 const PORT = 8000;
+
+// Enable instant background autoplay without user gesture requirements
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling');
 
 // Enforce single instance
 const gotTheLock = app.requestSingleInstanceLock();
@@ -144,17 +150,20 @@ function setupGlobalShortcuts() {
 function setupSystemTray() {
     const iconPath = path.join(__dirname, '../public/favicon.ico');
     try {
-        tray = new Tray(iconPath);
-        updateTrayMenu();
+        if (fs.existsSync(iconPath) && fs.statSync(iconPath).size > 0) {
+            const nIcon = nativeImage.createFromPath(iconPath);
+            tray = new Tray(nIcon);
+            updateTrayMenu();
 
-        tray.setToolTip('Music Glass — Liquid Glass Player');
-        tray.on('double-click', () => {
-            if (mainWindow) {
-                if (mainWindow.isMinimized()) mainWindow.restore();
-                mainWindow.show();
-                mainWindow.focus();
-            }
-        });
+            tray.setToolTip('Music Glass — Liquid Glass Player');
+            tray.on('double-click', () => {
+                if (mainWindow) {
+                    if (mainWindow.isMinimized()) mainWindow.restore();
+                    mainWindow.show();
+                    mainWindow.focus();
+                }
+            });
+        }
     } catch (err) {
         console.warn('[Music Glass] Could not create system tray:', err.message);
     }

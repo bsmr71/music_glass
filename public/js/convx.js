@@ -233,20 +233,23 @@ class ConvxApp {
         if (window.electronAPI) {
             document.body.classList.add('is-electron');
 
-            // Window Control Buttons
+            // Window Control Buttons (Topbar)
             const btnMin = document.getElementById('win-btn-min');
             const btnMax = document.getElementById('win-btn-max');
             const btnClose = document.getElementById('win-btn-close');
 
-            if (btnMin) {
-                btnMin.addEventListener('click', () => window.electronAPI.minimize());
-            }
-            if (btnMax) {
-                btnMax.addEventListener('click', () => window.electronAPI.maximize());
-            }
-            if (btnClose) {
-                btnClose.addEventListener('click', () => window.electronAPI.close());
-            }
+            if (btnMin) btnMin.addEventListener('click', () => window.electronAPI.minimize());
+            if (btnMax) btnMax.addEventListener('click', () => window.electronAPI.maximize());
+            if (btnClose) btnClose.addEventListener('click', () => window.electronAPI.close());
+
+            // Window Control Buttons (Fullscreen Player)
+            const fsBtnMin = document.getElementById('fs-win-btn-min');
+            const fsBtnMax = document.getElementById('fs-win-btn-max');
+            const fsBtnClose = document.getElementById('fs-win-btn-close');
+
+            if (fsBtnMin) fsBtnMin.addEventListener('click', () => window.electronAPI.minimize());
+            if (fsBtnMax) fsBtnMax.addEventListener('click', () => window.electronAPI.maximize());
+            if (fsBtnClose) fsBtnClose.addEventListener('click', () => window.electronAPI.close());
 
             // GitHub External Link Handler
             const githubPill = document.getElementById('btn-github-profile');
@@ -736,42 +739,72 @@ class ConvxApp {
      * Setup YouTube IFrame API as Seamless Fallback Player
      */
     setupYouTubeAPI() {
-        window.onYouTubeIframeAPIReady = () => {
-            this.ytPlayer = new YT.Player('yt-player-container', {
-                height: '1',
-                width: '1',
-                playerVars: {
-                    autoplay: 0,
-                    controls: 0,
-                    disablekb: 1,
-                    enablejsapi: 1,
-                    origin: window.location.origin,
-                    playsinline: 1
-                },
-                events: {
-                    onReady: () => {
-                        this.ytReady = true;
+        const initYT = () => {
+            if (this.ytPlayer) return;
+            try {
+                this.ytPlayer = new YT.Player('yt-player-container', {
+                    height: '1',
+                    width: '1',
+                    playerVars: {
+                        autoplay: 1,
+                        controls: 0,
+                        disablekb: 1,
+                        enablejsapi: 1,
+                        origin: window.location.origin || 'http://127.0.0.1:8000',
+                        playsinline: 1
                     },
-                    onStateChange: (event) => {
-                        if (event.data === YT.PlayerState.PLAYING) {
-                            this.isPlaying = true;
-                            this.updatePlayStateUI();
-                            this.startYouTubeProgressInterval();
-                        } else if (event.data === YT.PlayerState.PAUSED) {
-                            this.isPlaying = false;
-                            this.updatePlayStateUI();
-                        } else if (event.data === YT.PlayerState.ENDED) {
-                            if (this.repeatMode === 'one') {
-                                this.ytPlayer.seekTo(0, true);
-                                this.ytPlayer.playVideo();
-                            } else {
-                                this.nextTrack();
+                    events: {
+                        onReady: () => {
+                            this.ytReady = true;
+                            if (this.pendingTrackToPlay) {
+                                const t = this.pendingTrackToPlay;
+                                this.pendingTrackToPlay = null;
+                                this.playViaYouTubeEngine(t);
+                            }
+                        },
+                        onStateChange: (event) => {
+                            if (event.data === YT.PlayerState.PLAYING) {
+                                this.isPlaying = true;
+                                this.updatePlayStateUI();
+                                this.startYouTubeProgressInterval();
+                            } else if (event.data === YT.PlayerState.PAUSED) {
+                                this.isPlaying = false;
+                                this.updatePlayStateUI();
+                            } else if (event.data === YT.PlayerState.ENDED) {
+                                if (this.repeatMode === 'one') {
+                                    this.ytPlayer.seekTo(0, true);
+                                    this.ytPlayer.playVideo();
+                                } else {
+                                    this.nextTrack();
+                                }
+                            }
+                        },
+                        onError: (err) => {
+                            console.warn('[Player] YouTube Engine error code:', err.data, '- activating direct stream fallback');
+                            if (this.currentTrack) {
+                                fetch(`/api/music/stream/${this.currentTrack.id}`)
+                                    .then(res => res.json())
+                                    .then(d => {
+                                        if (d && d.primaryUrl) {
+                                            this.audio.src = d.primaryUrl;
+                                            this.audio.play();
+                                            this.useYouTubeEngine = false;
+                                        }
+                                    });
                             }
                         }
                     }
-                }
-            });
+                });
+            } catch (err) {
+                console.warn('YT Player init error:', err);
+            }
         };
+
+        if (window.YT && window.YT.Player) {
+            initYT();
+        } else {
+            window.onYouTubeIframeAPIReady = initYT;
+        }
     }
 
     startYouTubeProgressInterval() {
@@ -894,11 +927,18 @@ class ConvxApp {
     playViaYouTubeEngine(track) {
         this.useYouTubeEngine = true;
         this.audio.pause();
-        if (this.ytPlayer && this.ytPlayer.loadVideoById) {
-            this.ytPlayer.loadVideoById(track.id);
-            this.ytPlayer.playVideo();
-            this.isPlaying = true;
-            this.updatePlayStateUI();
+        if (this.ytPlayer && typeof this.ytPlayer.loadVideoById === 'function' && this.ytReady) {
+            try {
+                this.ytPlayer.loadVideoById(track.id);
+                this.ytPlayer.playVideo();
+                this.isPlaying = true;
+                this.updatePlayStateUI();
+            } catch (e) {
+                console.warn('YT playVideo error:', e);
+            }
+        } else {
+            this.pendingTrackToPlay = track;
+            console.log('[Player] YouTube Player pending ready for:', track.title);
         }
     }
 
