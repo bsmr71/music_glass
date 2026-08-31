@@ -933,7 +933,7 @@ class ConvxApp {
             container.innerHTML = `
                 <iframe 
                     id="yt-stream-iframe"
-                    src="https://www.youtube.com/embed/${track.id}?autoplay=1&enablejsapi=1&playsinline=1&controls=0"
+                    src="https://www.youtube.com/embed/${track.id}?autoplay=1&mute=0&volume=100&enablejsapi=1&playsinline=1"
                     allow="autoplay *; encrypted-media *; picture-in-picture *;"
                     style="width: 240px; height: 180px; border: 0;"
                 ></iframe>

@@ -114,6 +114,10 @@ function createWindow() {
     mainWindow.webContents.setAudioMuted(false);
     mainWindow.loadURL(APP_URL, { userAgent: cleanUserAgent });
 
+    mainWindow.webContents.on('console-message', (event, level, message) => {
+        console.log(`[App Console]: ${message}`);
+    });
+
     // Open external web links in user's default browser
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
         shell.openExternal(url);

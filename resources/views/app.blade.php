@@ -27,7 +27,7 @@
     <div id="ambient-glow" class="ambient-glow"></div>
 
     <!-- Hidden Audio & YouTube Engine -->
-    <audio id="audio-player" crossorigin="anonymous" preload="auto"></audio>
+    <audio id="audio-player" preload="auto"></audio>
     <div id="yt-player-container" class="yt-hidden-player"></div>
 
     <!-- App Container -->
