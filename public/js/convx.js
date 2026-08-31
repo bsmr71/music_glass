@@ -43,6 +43,7 @@ class ConvxApp {
         this.eqFilters = [];
         this.isVisualizerActive = true;
         this.isAudioCtxInitialized = false;
+        this.isBuffering = false;
 
         // Lyrics Engine
         this.currentLyrics = [];
@@ -692,6 +693,21 @@ class ConvxApp {
      * Setup Audio Event Listeners (HTML5)
      */
     setupAudioListeners() {
+        this.audio.addEventListener('waiting', () => {
+            this.setBuffering(true);
+        });
+
+        this.audio.addEventListener('playing', () => {
+            this.setBuffering(false);
+            this.isPlaying = true;
+            this.updatePlayStateUI();
+            this.broadcastRoomSync();
+        });
+
+        this.audio.addEventListener('canplay', () => {
+            this.setBuffering(false);
+        });
+
         this.audio.addEventListener('play', () => {
             this.isPlaying = true;
             this.updatePlayStateUI();
@@ -699,6 +715,7 @@ class ConvxApp {
         });
 
         this.audio.addEventListener('pause', () => {
+            this.setBuffering(false);
             this.isPlaying = false;
             this.updatePlayStateUI();
             this.broadcastRoomSync();
@@ -966,6 +983,10 @@ class ConvxApp {
             this.audio.pause();
         }
 
+        // Trigger Instant Liquid Glass Buffering State & Shimmer Animation
+        this.setBuffering(true);
+        this.updateProgress(0, 0);
+
         // Fetch and play direct native master audio stream
         fetch(`/api/music/stream/${track.id}`)
             .then(res => res.json())
@@ -974,12 +995,31 @@ class ConvxApp {
                     this.audio.src = streamData.primaryUrl;
                     this.useYouTubeEngine = false;
                     this.audio.play().then(() => {
+                        this.setBuffering(false);
                         this.isPlaying = true;
                         this.updatePlayStateUI();
-                    }).catch(() => {});
+                    }).catch(() => {
+                        this.setBuffering(false);
+                    });
+                } else {
+                    this.setBuffering(false);
                 }
             })
-            .catch(() => {});
+            .catch(() => {
+                this.setBuffering(false);
+            });
+    }
+
+    setBuffering(isBuffering) {
+        this.isBuffering = isBuffering;
+        document.body.classList.toggle('is-buffering', isBuffering);
+
+        const nowPlayingTag = document.querySelector('.fs-now-playing-tag');
+        if (nowPlayingTag) {
+            nowPlayingTag.textContent = isBuffering ? '✦ MEMUAT AUDIO...' : 'NOW STREAMING';
+        }
+
+        this.updatePlayStateUI();
     }
 
     togglePlay() {
@@ -1180,8 +1220,12 @@ class ConvxApp {
     updatePlayStateUI() {
         const playSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>`;
         const pauseSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pause"><rect width="4" height="16" x="6" y="4" rx="1"></rect><rect width="4" height="16" x="14" y="4" rx="1"></rect></svg>`;
+        const bufferSvg = `<svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9" stroke="rgba(0,0,0,0.15)" stroke-width="2.5" fill="none"/><path d="M12 3a9 9 0 0 1 9 9" stroke="#9333ea" stroke-linecap="round"/></svg>`;
 
-        const iconHtml = this.isPlaying ? pauseSvg : playSvg;
+        let iconHtml = this.isPlaying ? pauseSvg : playSvg;
+        if (this.isBuffering) {
+            iconHtml = bufferSvg;
+        }
 
         if (this.dom.miniBtnPlay) {
             this.dom.miniBtnPlay.innerHTML = iconHtml;
@@ -1190,9 +1234,9 @@ class ConvxApp {
             this.dom.fsBtnPlay.innerHTML = iconHtml;
         }
         
-        document.body.classList.toggle('playing', this.isPlaying);
+        document.body.classList.toggle('playing', this.isPlaying && !this.isBuffering);
         if (this.dom.fsVinyl) {
-            this.dom.fsVinyl.style.animationPlayState = this.isPlaying ? 'running' : 'paused';
+            this.dom.fsVinyl.style.animationPlayState = (this.isPlaying || this.isBuffering) ? 'running' : 'paused';
         }
 
         // Sync with Electron Desktop Process
