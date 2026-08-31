@@ -957,12 +957,6 @@ class ConvxApp {
     async playTrack(track, addToQueue = true) {
         if (!track || !track.id) return;
 
-        // Initialize AudioContext on first user interaction
-        this.initAudioContext();
-        if (this.audioCtx && this.audioCtx.state === 'suspended') {
-            this.audioCtx.resume();
-        }
-
         this.currentTrack = track;
         this.updateTrackMetaUI(track);
 
