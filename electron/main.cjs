@@ -290,21 +290,25 @@ app.whenReady().then(() => {
     session.defaultSession.setPermissionCheckHandler(() => true);
     session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => callback(true));
 
-    // 1. Spoof headers for YouTube embed and audio playback so Electron is treated like music.youtube.com
+    // 1. Spoof headers for YouTube embed and audio playback with matching YouTube origin
     session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
         const requestHeaders = { ...details.requestHeaders };
         const url = details.url;
 
         if (url.includes('youtube.com') || url.includes('youtube-nocookie.com') || url.includes('googlevideo.com')) {
-            requestHeaders['Referer'] = 'https://music.youtube.com/';
-            requestHeaders['Origin'] = 'https://music.youtube.com';
             requestHeaders['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+            if (!requestHeaders['Origin'] || requestHeaders['Origin'].includes('127.0.0.1') || requestHeaders['Origin'].includes('localhost')) {
+                requestHeaders['Origin'] = 'https://www.youtube.com';
+            }
+            if (!requestHeaders['Referer'] || requestHeaders['Referer'].includes('127.0.0.1') || requestHeaders['Referer'].includes('localhost')) {
+                requestHeaders['Referer'] = 'https://www.youtube.com/';
+            }
         }
 
         callback({ requestHeaders });
     });
 
-    // 2. Strip X-Frame-Options and CSP headers for seamless YouTube embed playback in Electron
+    // 2. Strip X-Frame-Options, CSP, and grant universal CORS for all media streams
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
         const responseHeaders = { ...details.responseHeaders };
         delete responseHeaders['x-frame-options'];
@@ -315,6 +319,15 @@ app.whenReady().then(() => {
         delete responseHeaders['Cross-Origin-Embedder-Policy'];
         delete responseHeaders['cross-origin-opener-policy'];
         delete responseHeaders['Cross-Origin-Opener-Policy'];
+
+        // Allow CORS universally for all googlevideo media and audio streams
+        responseHeaders['access-control-allow-origin'] = ['*'];
+        responseHeaders['Access-Control-Allow-Origin'] = ['*'];
+        responseHeaders['access-control-allow-headers'] = ['*'];
+        responseHeaders['Access-Control-Allow-Headers'] = ['*'];
+        responseHeaders['access-control-allow-methods'] = ['GET, POST, OPTIONS, HEAD'];
+        responseHeaders['Access-Control-Allow-Methods'] = ['GET, POST, OPTIONS, HEAD'];
+
         callback({ responseHeaders });
     });
 
