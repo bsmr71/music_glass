@@ -839,7 +839,7 @@ class ConvxApp {
         this.currentTrackTime = 0;
         this.currentTrackDuration = track.duration ? this.parseDurationSeconds(track.duration) : 180;
 
-        const embedUrl = `https://www.youtube.com/embed/${track.id}?autoplay=1&mute=0&volume=100&playsinline=1`;
+        const embedUrl = `https://www.youtube.com/embed/${track.id}?autoplay=1&mute=0&controls=1&playsinline=1`;
         const iframe = document.getElementById('yt-stream-iframe');
         const container = document.getElementById('yt-player-container');
 
@@ -850,8 +850,8 @@ class ConvxApp {
                 <iframe 
                     id="yt-stream-iframe"
                     src="${embedUrl}"
-                    allow="autoplay *; encrypted-media *; picture-in-picture *; compute-pressure *;"
-                    style="width: 240px; height: 180px; border: 0;"
+                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                    style="width: 100%; height: 100%; border: 0;"
                 ></iframe>
             `;
         }
