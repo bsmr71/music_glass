@@ -851,7 +851,7 @@ class ConvxApp {
                 <iframe 
                     id="yt-stream-iframe"
                     src="${embedUrl}"
-                    allow="autoplay *; encrypted-media *; picture-in-picture *;"
+                    allow="autoplay *; encrypted-media *; picture-in-picture *; compute-pressure *;"
                     style="width: 240px; height: 180px; border: 0;"
                 ></iframe>
             `;

@@ -1,5 +1,14 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+// Safe polyfill for Chrome runtime to prevent YouTube embed widgetapi errors
+try {
+    window.chrome = window.chrome || {};
+    window.chrome.runtime = window.chrome.runtime || {
+        sendMessage: () => {},
+        connect: () => ({ onMessage: { addListener: () => {} }, postMessage: () => {} })
+    };
+} catch (e) {}
+
 contextBridge.exposeInMainWorld('electronAPI', {
     isElectron: true,
     platform: process.platform,
