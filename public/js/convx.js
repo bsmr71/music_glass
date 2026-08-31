@@ -248,7 +248,7 @@ class ConvxApp {
             });
         }
 
-        // Global Search
+        // Global Search (Menunggu user selesai mengetik / Tekan Enter)
         let searchDebounce = null;
         this.dom.searchInput.addEventListener('input', (e) => {
             const val = e.target.value.trim();
@@ -257,20 +257,18 @@ class ConvxApp {
             clearTimeout(searchDebounce);
             if (val.length >= 2) {
                 this.dom.searchSpinner.classList.add('active');
-                this.switchView('search');
-                this.dom.searchResultsList.innerHTML = `
-                    <div class="tracklist-table">
-                        ${this.getTrackRowSkeletonHTML(8)}
-                    </div>
-                `;
                 searchDebounce = setTimeout(() => {
+                    this.switchView('search');
                     this.performSearch(val);
-                }, 350);
+                }, 750);
+            } else {
+                this.dom.searchSpinner.classList.remove('active');
             }
         });
 
         this.dom.searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 const val = this.dom.searchInput.value.trim();
                 if (val.length >= 2) {
                     clearTimeout(searchDebounce);
@@ -280,9 +278,25 @@ class ConvxApp {
             }
         });
 
+        // Click on search icon to trigger search immediately
+        const searchIcon = document.querySelector('.top-search-bar .search-icon');
+        if (searchIcon) {
+            searchIcon.style.cursor = 'pointer';
+            searchIcon.addEventListener('click', () => {
+                const val = this.dom.searchInput.value.trim();
+                if (val.length >= 2) {
+                    clearTimeout(searchDebounce);
+                    this.switchView('search');
+                    this.performSearch(val);
+                }
+            });
+        }
+
         this.dom.searchClearBtn.addEventListener('click', () => {
+            clearTimeout(searchDebounce);
             this.dom.searchInput.value = '';
             this.dom.searchClearBtn.classList.remove('active');
+            this.dom.searchSpinner.classList.remove('active');
             this.dom.searchInput.focus();
         });
 
