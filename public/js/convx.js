@@ -924,32 +924,6 @@ class ConvxApp {
             this.analyser.fftSize = 128;
             this.analyser.smoothingTimeConstant = 0.8;
 
-            this.sourceNode = this.audioCtx.createMediaElementSource(this.audio);
-
-            // Create 10 Biquad Filters for Equalizer
-            let prevNode = this.sourceNode;
-            this.eqFilters = this.eqFrequencies.map((freq, index) => {
-                const filter = this.audioCtx.createBiquadFilter();
-                if (index === 0) {
-                    filter.type = 'lowshelf';
-                } else if (index === this.eqFrequencies.length - 1) {
-                    filter.type = 'highshelf';
-                } else {
-                    filter.type = 'peaking';
-                    filter.Q.value = 1.4;
-                }
-                filter.frequency.value = freq;
-                filter.gain.value = 0;
-
-                prevNode.connect(filter);
-                prevNode = filter;
-                return filter;
-            });
-
-            // Connect last filter to analyser and master destination
-            prevNode.connect(this.analyser);
-            this.analyser.connect(this.audioCtx.destination);
-
             this.isAudioCtxInitialized = true;
         } catch (e) {
             console.warn('Web Audio API could not be initialized:', e);
