@@ -736,87 +736,79 @@ class ConvxApp {
     }
 
     /**
-     * Setup YouTube IFrame API as Seamless Fallback Player
+     * Setup Universal YouTube Streaming Engine
      */
     setupYouTubeAPI() {
-        const initYT = () => {
-            if (this.ytPlayer) return;
+        // 1. Universal postMessage listener for YouTube embed iframe state sync
+        window.addEventListener('message', (event) => {
+            if (!event || typeof event.data !== 'string') return;
             try {
-                this.ytPlayer = new YT.Player('yt-player-container', {
-                    height: '240',
-                    width: '320',
-                    playerVars: {
-                        autoplay: 1,
-                        controls: 0,
-                        disablekb: 1,
-                        enablejsapi: 1,
-                        origin: window.location.origin || 'http://127.0.0.1:8000',
-                        playsinline: 1
-                    },
-                    events: {
-                        onReady: () => {
-                            this.ytReady = true;
-                            if (this.pendingTrackToPlay) {
-                                const t = this.pendingTrackToPlay;
-                                this.pendingTrackToPlay = null;
-                                this.playViaYouTubeEngine(t);
-                            }
-                        },
-                        onStateChange: (event) => {
-                            if (event.data === YT.PlayerState.PLAYING) {
-                                this.isPlaying = true;
-                                this.updatePlayStateUI();
-                                this.startYouTubeProgressInterval();
-                            } else if (event.data === YT.PlayerState.PAUSED) {
-                                this.isPlaying = false;
-                                this.updatePlayStateUI();
-                            } else if (event.data === YT.PlayerState.ENDED) {
-                                if (this.repeatMode === 'one') {
-                                    this.ytPlayer.seekTo(0, true);
-                                    this.ytPlayer.playVideo();
-                                } else {
-                                    this.nextTrack();
-                                }
-                            }
-                        },
-                        onError: (err) => {
-                            console.warn('[Player] YouTube Engine error code:', err.data, '- activating direct stream fallback');
-                            if (this.currentTrack) {
-                                fetch(`/api/music/stream/${this.currentTrack.id}`)
-                                    .then(res => res.json())
-                                    .then(d => {
-                                        if (d && d.primaryUrl) {
-                                            this.audio.src = d.primaryUrl;
-                                            this.audio.play();
-                                            this.useYouTubeEngine = false;
-                                        }
-                                    });
-                            }
+                const data = JSON.parse(event.data);
+                if (data.event === 'infoDelivery' && data.info) {
+                    const info = data.info;
+                    if (typeof info.duration === 'number' && info.duration > 0) {
+                        this.currentTrackDuration = info.duration;
+                    }
+                    if (typeof info.currentTime === 'number') {
+                        this.currentTrackTime = info.currentTime;
+                        const duration = this.currentTrackDuration || (this.currentTrack?.duration ? this.parseDurationSeconds(this.currentTrack.duration) : 180);
+                        this.updateProgress(this.currentTrackTime, duration);
+                        this.updateLyricsSync(this.currentTrackTime);
+                    }
+                    if (info.playerState === 1) { // Playing
+                        this.isPlaying = true;
+                        this.updatePlayStateUI();
+                    } else if (info.playerState === 2) { // Paused
+                        this.isPlaying = false;
+                        this.updatePlayStateUI();
+                    } else if (info.playerState === 0) { // Ended
+                        if (this.repeatMode === 'one') {
+                            this.sendYouTubeCommand('seekTo', [0, true]);
+                            this.sendYouTubeCommand('playVideo');
+                        } else {
+                            this.nextTrack();
                         }
                     }
-                });
-            } catch (err) {
-                console.warn('YT Player init error:', err);
-            }
-        };
+                }
+            } catch (e) {}
+        });
 
-        if (window.YT && window.YT.Player) {
-            initYT();
-        } else {
-            window.onYouTubeIframeAPIReady = initYT;
+        // 2. Start reliable progress ticker
+        this.startYouTubeProgressInterval();
+    }
+
+    sendYouTubeCommand(command, args = '') {
+        const frame = document.getElementById('yt-stream-iframe') || document.querySelector('#yt-player-container iframe');
+        if (frame && frame.contentWindow) {
+            frame.contentWindow.postMessage(JSON.stringify({
+                event: 'command',
+                func: command,
+                args: args !== '' ? (Array.isArray(args) ? args : [args]) : []
+            }), '*');
         }
+    }
+
+    parseDurationSeconds(durStr) {
+        if (!durStr) return 180;
+        const parts = durStr.split(':').map(Number);
+        if (parts.length === 2) return (parts[0] * 60) + parts[1];
+        if (parts.length === 3) return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+        return 180;
     }
 
     startYouTubeProgressInterval() {
         clearInterval(this.ytProgressInterval);
         this.ytProgressInterval = setInterval(() => {
-            if (this.useYouTubeEngine && this.ytPlayer && this.isPlaying && this.ytPlayer.getCurrentTime) {
-                const current = this.ytPlayer.getCurrentTime() || 0;
-                const duration = this.ytPlayer.getDuration() || 0;
-                this.updateProgress(current, duration);
-                this.updateLyricsSync(current);
+            if (this.useYouTubeEngine && this.isPlaying) {
+                // Request live info from YouTube iframe
+                this.sendYouTubeCommand('listening');
+                // Increment fallback time smoothly
+                this.currentTrackTime = (this.currentTrackTime || 0) + 0.25;
+                const duration = this.currentTrackDuration || (this.currentTrack?.duration ? this.parseDurationSeconds(this.currentTrack.duration) : 180);
+                this.updateProgress(this.currentTrackTime, duration);
+                this.updateLyricsSync(this.currentTrackTime);
             }
-        }, 200);
+        }, 250);
     }
 
     /**
@@ -932,19 +924,25 @@ class ConvxApp {
     playViaYouTubeEngine(track) {
         this.useYouTubeEngine = true;
         this.audio.pause();
-        if (this.ytPlayer && typeof this.ytPlayer.loadVideoById === 'function' && this.ytReady) {
-            try {
-                this.ytPlayer.loadVideoById(track.id);
-                this.ytPlayer.playVideo();
-                this.isPlaying = true;
-                this.updatePlayStateUI();
-            } catch (e) {
-                console.warn('YT playVideo error:', e);
-            }
-        } else {
-            this.pendingTrackToPlay = track;
-            console.log('[Player] YouTube Player pending ready for:', track.title);
+
+        this.currentTrackTime = 0;
+        this.currentTrackDuration = track.duration ? this.parseDurationSeconds(track.duration) : 180;
+
+        const container = document.getElementById('yt-player-container');
+        if (container) {
+            const origin = window.location.origin || 'http://127.0.0.1:8000';
+            container.innerHTML = `
+                <iframe 
+                    id="yt-stream-iframe"
+                    src="https://www.youtube.com/embed/${track.id}?autoplay=1&enablejsapi=1&playsinline=1&controls=0&origin=${encodeURIComponent(origin)}"
+                    allow="autoplay; encrypted-media; fullscreen"
+                    style="width: 320px; height: 240px; border: 0;"
+                ></iframe>
+            `;
         }
+
+        this.isPlaying = true;
+        this.updatePlayStateUI();
     }
 
     togglePlay() {
@@ -966,12 +964,15 @@ class ConvxApp {
             }
         }
 
-        if (this.useYouTubeEngine && this.ytPlayer && typeof this.ytPlayer.pauseVideo === 'function') {
+        if (this.useYouTubeEngine) {
             if (this.isPlaying) {
-                this.ytPlayer.pauseVideo();
+                this.sendYouTubeCommand('pauseVideo');
+                this.isPlaying = false;
             } else {
-                this.ytPlayer.playVideo();
+                this.sendYouTubeCommand('playVideo');
+                this.isPlaying = true;
             }
+            this.updatePlayStateUI();
         } else if (this.audio) {
             if (this.isPlaying) {
                 this.audio.pause();
@@ -979,8 +980,7 @@ class ConvxApp {
                 if (!this.audio.src && this.currentTrack) {
                     this.playTrack(this.currentTrack, false);
                 } else if (this.audio.src) {
-                    this.audio.play().catch(e => {
-                        console.warn('Playback error, falling back to YouTube engine:', e);
+                    this.audio.play().catch(() => {
                         if (this.currentTrack) this.playViaYouTubeEngine(this.currentTrack);
                     });
                 } else if (this.currentTrack) {
@@ -1050,34 +1050,37 @@ class ConvxApp {
     }
 
     seekToPercent(pos) {
-        if (this.useYouTubeEngine && this.ytPlayer && typeof this.ytPlayer.getDuration === 'function') {
-            const dur = this.ytPlayer.getDuration();
-            if (dur > 0) {
-                this.ytPlayer.seekTo(dur * pos, true);
-            }
-        } else if (this.audio) {
-            if (this.audio.duration) {
-                this.audio.currentTime = this.audio.duration * pos;
-            }
+        const duration = this.currentTrackDuration || (this.currentTrack?.duration ? this.parseDurationSeconds(this.currentTrack.duration) : 180);
+        const targetSeconds = (pos / 100) * duration;
+
+        if (this.useYouTubeEngine) {
+            this.sendYouTubeCommand('seekTo', [targetSeconds, true]);
+            this.currentTrackTime = targetSeconds;
+            this.updateProgress(targetSeconds, duration);
+            this.updateLyricsSync(targetSeconds);
+        } else if (this.audio && this.audio.duration) {
+            this.audio.currentTime = (pos / 100) * this.audio.duration;
         }
     }
 
     seekRelative(seconds) {
-        if (this.useYouTubeEngine && this.ytPlayer && typeof this.ytPlayer.getCurrentTime === 'function' && typeof this.ytPlayer.getDuration === 'function') {
-            const cur = this.ytPlayer.getCurrentTime() || 0;
-            const dur = this.ytPlayer.getDuration() || 0;
-            const target = Math.max(0, Math.min(dur || Infinity, cur + seconds));
-            this.ytPlayer.seekTo(target, true);
+        const duration = this.currentTrackDuration || (this.currentTrack?.duration ? this.parseDurationSeconds(this.currentTrack.duration) : 180);
+        const cur = this.currentTrackTime || (this.audio ? this.audio.currentTime : 0) || 0;
+        const target = Math.max(0, Math.min(duration || Infinity, cur + seconds));
+
+        if (this.useYouTubeEngine) {
+            this.sendYouTubeCommand('seekTo', [target, true]);
+            this.currentTrackTime = target;
+            this.updateProgress(target, duration);
+            this.updateLyricsSync(target);
         } else if (this.audio) {
-            const cur = this.audio.currentTime || 0;
-            const dur = this.audio.duration || 0;
-            const target = Math.max(0, Math.min(dur || Infinity, cur + seconds));
             this.audio.currentTime = target;
         }
     }
 
     setVolume(val) {
         this.audio.volume = val;
+        this.sendYouTubeCommand('setVolume', [Math.round(val * 100)]);
         if (this.ytPlayer && typeof this.ytPlayer.setVolume === 'function') {
             this.ytPlayer.setVolume(val * 100);
         }
