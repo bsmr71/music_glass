@@ -79,4 +79,46 @@ class MusicController extends Controller
         $lyrics = $this->lyricsService->getLyrics($title, $artist, $album, $duration);
         return response()->json($lyrics);
     }
+
+    /**
+     * High-speed real-time audio chunk stream proxy (Same-Origin, Zero-CORS, Zero-403)
+     */
+    public function streamRaw(string $id)
+    {
+        $bin = base_path('yt-dlp.exe');
+        if (!file_exists($bin)) {
+            return response()->json(['error' => 'Stream engine not available'], 500);
+        }
+
+        $cleanId = escapeshellcmd($id);
+        $cmd = '"' . $bin . '" --no-warnings --no-playlist -q -o - -f "140/251/bestaudio" "https://www.youtube.com/watch?v=' . $cleanId . '"';
+
+        return response()->stream(function () use ($cmd) {
+            $descriptorspec = [
+                0 => ["pipe", "r"],
+                1 => ["pipe", "w"],
+                2 => ["pipe", "w"]
+            ];
+            $process = proc_open($cmd, $descriptorspec, $pipes);
+            if (is_resource($process)) {
+                fclose($pipes[0]);
+                while (!feof($pipes[1])) {
+                    $buffer = fread($pipes[1], 32768);
+                    if ($buffer !== false && strlen($buffer) > 0) {
+                        echo $buffer;
+                        flush();
+                    }
+                }
+                fclose($pipes[1]);
+                fclose($pipes[2]);
+                proc_close($process);
+            }
+        }, 200, [
+            'Content-Type' => 'audio/webm',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Accept-Ranges' => 'bytes',
+            'Access-Control-Allow-Origin' => '*',
+            'X-Accel-Buffering' => 'no'
+        ]);
+    }
 }

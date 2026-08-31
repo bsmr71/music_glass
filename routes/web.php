@@ -21,6 +21,7 @@ Route::prefix('api')->group(function () {
     Route::get('/music/search', [MusicController::class, 'search']);
     Route::get('/music/trending', [MusicController::class, 'trending']);
     Route::get('/music/stream/{id}', [MusicController::class, 'stream']);
+    Route::get('/music/stream-raw/{id}', [MusicController::class, 'streamRaw']);
     Route::get('/music/lyrics', [MusicController::class, 'lyrics']);
 
     // Library & Playlists

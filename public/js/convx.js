@@ -987,27 +987,16 @@ class ConvxApp {
         this.setBuffering(true);
         this.updateProgress(0, 0);
 
-        // Fetch and play direct native master audio stream
-        fetch(`/api/music/stream/${track.id}`)
-            .then(res => res.json())
-            .then(streamData => {
-                if (streamData && streamData.success && streamData.primaryUrl && this.currentTrack?.id === track.id) {
-                    this.audio.src = streamData.primaryUrl;
-                    this.useYouTubeEngine = false;
-                    this.audio.play().then(() => {
-                        this.setBuffering(false);
-                        this.isPlaying = true;
-                        this.updatePlayStateUI();
-                    }).catch(() => {
-                        this.setBuffering(false);
-                    });
-                } else {
-                    this.setBuffering(false);
-                }
-            })
-            .catch(() => {
-                this.setBuffering(false);
-            });
+        // Directly stream from local high-performance same-origin proxy (Zero-CORS, Zero-403)
+        this.audio.src = `/api/music/stream-raw/${track.id}`;
+        this.useYouTubeEngine = false;
+        this.audio.play().then(() => {
+            this.setBuffering(false);
+            this.isPlaying = true;
+            this.updatePlayStateUI();
+        }).catch(() => {
+            this.setBuffering(false);
+        });
     }
 
     setBuffering(isBuffering) {
