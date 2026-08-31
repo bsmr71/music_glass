@@ -1,59 +1,187 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80" width="140" style="border-radius: 28px; box-shadow: 0 12px 36px rgba(0, 102, 255, 0.4);" alt="Convx Logo">
 </p>
 
-## About Laravel
+<h1 align="center">CONVX — Liquid Glass Music Player</h1>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<p align="center">
+  <strong>Next-Gen Web Music Player with Apple/iOS-Inspired Liquid Glass UI, Web Audio Equalizer, 60FPS Canvas Visualizer, Live Synced Karaoke Lyrics, and Zero-Lag Dual Engine Streaming.</strong>
+</p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+<p align="center">
+  <img src="https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel">
+  <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP">
+  <img src="https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript">
+  <img src="https://img.shields.io/badge/Web_Audio_API-Enabled-0066FF?style=for-the-badge&logo=w3c&logoColor=white" alt="Web Audio API">
+  <img src="https://img.shields.io/badge/Style-Liquid_Glass_CSS-00D2FF?style=for-the-badge" alt="Liquid Glass CSS">
+  <img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" alt="License">
+</p>
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🌟 Overview
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+**Convx Web** is a music streaming web client engineered with a custom **Liquid Glass (Glassmorphism)** design system and powered by the **Web Audio API**. It delivers seamless zero-lag streaming from YouTube Music alongside synchronized lyrics, a 10-band hardware-grade equalizer, and synchronized listening rooms.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## ✨ Key Features
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 🎧 Dual-Stream Audio Engine (Instant Playback)
+- **Zero-Latency Playback**: Initiates instant playback via YouTube Stream Engine with background HTML5 direct audio fallover.
+- **Failover Recovery**: Automatic recovery if network streams disconnect or fail.
+- **Background Autoplay**: Automatically queues recommended songs when reaching the end of the queue.
 
-### Premium Partners
+### 💎 Liquid Glass Design System
+- **iOS-Inspired Aesthetics**: Deep multi-layered backdrop blurs (`backdrop-filter: blur(32px)`), translucent glow cards, and spring-physics transitions.
+- **Dynamic Ambient Color Thief**: Automatically extracts dominant ambient colors from album cover artwork to tint background meshes dynamically in real-time.
+- **Responsive Layout**: Designed for Desktop, Tablet, and Mobile with optimized touch targets and navigation bars.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 🎤 Live Synced Karaoke Lyrics
+- **LRCLIB Synchronized Lyrics**: Real-time word/line synced karaoke lyrics view.
+- **Physics-based Centering**: Automatic smooth scrolling to keep the active singing line perfectly centered.
 
-## Contributing
+### 🎚️ 10-Band Web Audio Equalizer & FX
+- **Parametric 10-Band Biquad Filters**: 32Hz, 64Hz, 125Hz, 250Hz, 500Hz, 1kHz, 2kHz, 4kHz, 8kHz, 16kHz.
+- **Curated Presets**: Flat, Bass Boost, Vocal Booster, Acoustic, Electronic, Rock, and Pop.
+- **3D Spatial Sound**: Audio spatializer widening simulation.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 📊 60 FPS Real-time Audio Visualizer
+- **Web Audio `AnalyserNode` Canvas**: Ultra-smooth real-time multi-frequency visualizer overlay with customized neon gradients.
 
-## Code of Conduct
+### 💫 Liquid Glass Shimmer Skeleton Loading
+- **Instant Search & Page Transition Feedback**: Pulsing liquid-glass skeleton shimmer cards across search queries, explore feeds, playlists, and history.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 📋 Queue Management
+- **Slide-out Drawer**: Dedicated queue drawer accessible from both Mini Player and Fullscreen Player.
+- **Interactive Controls**: Click to jump, remove individual tracks, clear queue, or shuffle.
 
-## Security Vulnerabilities
+### 👥 Listen Together (Synchronized Rooms)
+- **Shared Listening Rooms**: Generate a unique 6-character room code to sync playback, pause state, and track position in real-time with friends.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 🌙 Sleep Timer
+- **Smart Countdown**: Set automatic sleep timers (15m, 30m, 45m, 60m, or End of Current Track).
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Action |
+| :--- | :--- |
+| **`Space`** or **`K`** | Play / Pause toggle |
+| **`Arrow Left (←)`** / **`J`** | Seek backward 5s / 10s |
+| **`Arrow Right (→)`** / **`L`** | Seek forward 5s / 10s |
+| **`Shift` + `←`** / **`P`** | Previous track |
+| **`Shift` + `→`** / **`N`** | Next track |
+| **`Arrow Up (↑)`** | Volume up (+5%) |
+| **`Arrow Down (↓)`** | Volume down (-5%) |
+| **`M`** | Mute / Unmute audio |
+| **`F`** | Toggle Fullscreen Player |
+| **`C`** | Toggle Synced Lyrics View |
+| **`Q`** | Toggle Playing Queue Drawer |
+| **`Escape`** | Close open modals, drawers, or Fullscreen Player |
+
+> *Note: Shortcuts are intelligently disabled when typing in search bars or text input fields.*
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **PHP** >= 8.2
+- **Composer**
+- **Node.js** & **NPM** (optional, for asset bundling)
+- **SQLite** or **MySQL**
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/bsmr71/convx_web.git
+   cd convx_web
+   ```
+
+2. **Install PHP dependencies:**
+   ```bash
+   composer install
+   ```
+
+3. **Set up Environment File:**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+4. **Run Database Migrations:**
+   ```bash
+   php artisan migrate
+   ```
+
+5. **Start the Laravel Development Server:**
+   ```bash
+   php artisan serve
+   ```
+
+6. **Open in Browser:**
+   ```
+   http://127.0.0.1:8000
+   ```
+
+---
+
+## 📁 Project Architecture
+
+```
+convx_web/
+├── app/
+│   ├── Http/
+│   │   └── Controllers/
+│   │       ├── LibraryController.php    # Playlist, favorites, history CRUD
+│   │       ├── MusicController.php      # Search & audio stream routing
+│   │       └── RoomController.php       # Listen Together sync rooms
+│   ├── Models/
+│   │   ├── Favorite.php
+│   │   ├── History.php
+│   │   ├── Playlist.php
+│   │   ├── PlaylistTrack.php
+│   │   └── Room.php
+│   └── Services/
+│       ├── LyricsService.php            # LRCLIB synced lyrics engine
+│       └── YouTubeMusicService.php      # YouTube Music scraper & search
+├── database/
+│   └── migrations/                      # SQLite/MySQL schema definitions
+├── public/
+│   ├── css/
+│   │   └── convx.css                    # Liquid Glass Design System
+│   └── js/
+│       └── convx.js                     # Core player engine & Web Audio API
+├── resources/
+│   └── views/
+│       └── app.blade.php                # SPA single-page container
+└── routes/
+    └── web.php                          # API routes & SPA catch-all route
+```
+
+---
+
+## 📡 API Endpoints
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/music/search?q={query}&filter={filter}` | Search songs, artists, albums |
+| `GET` | `/api/music/trending` | Fetch explore and trending playlists |
+| `GET` | `/api/music/stream/{id}` | Direct audio stream failover link |
+| `GET` | `/api/music/lyrics?title={title}&artist={artist}` | Fetch synced LRCLIB lyrics |
+| `GET` | `/api/playlists` | List user playlists |
+| `POST` | `/api/playlists` | Create new playlist |
+| `GET` | `/api/favorites` | Get all favorite tracks |
+| `POST` | `/api/favorites/toggle` | Toggle favorite status |
+| `GET` | `/api/history` | Get playback history |
+| `POST` | `/api/rooms` | Create Listen Together room |
+| `POST` | `/api/rooms/{code}/sync` | Sync room playback state |
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**.
